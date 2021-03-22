@@ -38,6 +38,7 @@ public:
 	void setconnStatus(bool connStatus);
 	bool getconnStatus();
 	void freeEmptysocket();
+	Connection* getConnectionObject(int connectionNum);
 	Logwriter *logwrite;
 	DataQueue *dq = new DataQueue(10);
 	std::string initFilePath;

@@ -6,21 +6,25 @@
 #include <string>
 #include <cstdlib>
 #include <map>
+#include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <thread>
+#include <chrono>
 
 #include "enumStorage.h"
 #include "server.h"
 
 #define DELIMITER '|'
 
+Logwriter *logwrite;
+
 class RiskController
 {
 public:
     RiskController();
     ~RiskController();
-    void verify();
+    void verify(Order *order, double priceNow);
 private:
     std::string originalText;
 };
@@ -29,15 +33,27 @@ class Trader
 {
 public:
     Trader();
+    ~Trader();
+    void setTraderStatus(bool status);
+    bool getTraderStatus();
     void rawStrHandle(std::string rawStr);
     void orderDataInsert(std::string str);
     void matchup();
-    ~Trader();
+    void loadInitialise();
+    void getOrder();
+    void sendReport();
+    int checkDataQueue();
+    void startTransaction();
     Logwriter *logwrite;
+    Server *sr;
 private:
     std::vector<Order*> buyside_;
     std::vector<Order*> sellside_;
-    std::vector<Stock*> stockList_;
+    std::vector<Report*> reportList_;
+    std::map<std::string, Stock*> stockList_;
+    bool traderstatus_;
+    std::condition_variable cv_;
+    std::mutex cv_m;
 };
 
 class Order
@@ -49,6 +65,11 @@ public:
     void setNid();
     void setside();
     Side getside();
+    void setPrice();
+    double getPrice();
+
+    void setStatus(OrderStatus status);
+    OrderStatus getStatus();
 private:
     int stockNum_;
     long nid_;
@@ -63,7 +84,7 @@ private:
 class Report
 {
 public:
-    Report();
+    Report(Order *order);
     void setReportType(ReportType rpt);
     std::string composeReport();
     long generateNid();

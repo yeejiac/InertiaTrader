@@ -1,6 +1,6 @@
 #include "connection.h"
 
-Connection::Connection(int new_socket):connection_socket_(new_socket), recvStatus_(true){}
+Connection::Connection(int new_socket, int id):connection_socket_(new_socket), connectionID_(id), recvStatus_(true){}
 
 Connection::Connection(const Connection& rhs)
 {
@@ -54,4 +54,9 @@ void Connection::sendto(std::string str)
     {
         setRecvStatus(false);
     }
+}
+
+int Connection::getConnectionID()
+{
+    return connectionID_;
 }

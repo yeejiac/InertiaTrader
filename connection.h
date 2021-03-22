@@ -23,21 +23,22 @@
 class Connection
 {
 public:
-    Connection(int new_socket);
+    Connection(int new_socket, int id);
     Connection(const Connection& rhs);
     Connection& operator=(const Connection& rhs);
     void setRecvStatus(bool stat);
     bool getRecvStatus();
     bool recvfrom(std::string& str);
     void sendto(std::string str);
+    int getConnectionID();
 private:
     int connection_socket_;
+    int connectionID_;
     bool recvStatus_;
     char buffer_[buffer];
 	int recvbuflen_ = buffer;
     mutable std::mutex mutex_;
     std::condition_variable conncv_;
-
 };
 
 #endif

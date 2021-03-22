@@ -1,6 +1,5 @@
 #include "server.h"
 
-
 Server::Server(std::string initFilePath, std::string initchosen, std::string logPath):initFilePath(initFilePath),initchosen(initchosen),
 logPath(logPath)
 {
@@ -74,8 +73,8 @@ void Server::acceptConn()
 			std::string connPortNum;
 
 			std::unique_lock<std::mutex> lck3(mutex_);
-			Connection *cn = new Connection(connfd_);
-			int space = connStorage_.size();
+			int space = rand()%99;
+			Connection *cn = new Connection(connfd_, space);
 			std::pair<int, Connection*> tmp(space, cn);
 			connStorage_.insert(tmp);
 			lck3.unlock();
@@ -85,7 +84,6 @@ void Server::acceptConn()
 			std::thread sendheartbeat(&Server::heartbeat, this, cn);
 			recvConn.detach();
 			sendheartbeat.detach();
-
 		}
 	}
 }
@@ -103,6 +101,19 @@ void Server::heartbeat(Connection *cn)
 			break;
 		}
 		std::this_thread::sleep_for(std::chrono::seconds(10));
+	}
+}
+
+Connection* Server::getConnectionObject(int connectionNum)
+{
+	try
+	{
+		return connStorage_[connectionNum];
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+		return nullptr;
 	}
 }
 
@@ -134,7 +145,7 @@ void Server::msgRecv(Connection *cn)
 			{
 				subStr = recvStr.substr(0, recvStr.length()-1);
 			}
-			dq->pushDTA(subStr);
+			dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID()));
 		}
 		else
 		{
