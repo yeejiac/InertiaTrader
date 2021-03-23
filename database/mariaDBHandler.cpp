@@ -58,12 +58,26 @@ void MariaDBHandler::showTableItems(std::string sqlcommand)
     }
 }
 
+void MariaDBHandler::insertOrderData(struct OrderData)
+{
+    std::string query = "INSERT INTO `Order` (`NID`, `OrderID`, `OrderPrice`, `Symbol`, `UserID`) VALUES ('222', 'aa1234', '12.6', 'TXO', '0324027');";
+    if (mysql_query(conn, query.c_str()) != 0)                   
+    {    
+        // fprintf(stderr, "%s\n", mysql_error(conn));     
+        std::string msg(mysql_error(conn));                                                                                                                                                   
+        logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure " + msg);                                                                          
+    }
+    else
+        logwrite->write(LogLevel::DEBUG, "(MariaDB) Insert Success");
+}
+
 int main()
 {
     MariaDBHandler *dbm = new MariaDBHandler();
     if(dbm->initialise("database"))
         std::cout<<"success"<<std::endl;;
-    dbm->showTableItems("select * from test1");
+    OrderData od;
+    dbm->insertOrderData(od);
 }
 
 // g++ -std=c++11 ../lib/libcommon.so -lmysqlclient mariaDBHandler.cpp -o test.out

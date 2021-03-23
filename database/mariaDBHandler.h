@@ -8,6 +8,7 @@
 
 #include "../funclib/initParser.h"
 #include "../funclib/logwriter.h"
+#include "table.h"
 
 class MariaDBHandler
 {
@@ -16,6 +17,7 @@ public:
     ~MariaDBHandler();
     bool initialise(std::string cfg); 
     void showTableItems(std::string sqlcommand);
+    void insertOrderData(struct OrderData);
     Logwriter *logwrite = new Logwriter("DB", "../log/");
     const char* MY_HOSTNAME;
     const char* MY_DATABASE;

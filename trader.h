@@ -54,6 +54,7 @@ private:
     bool traderstatus_;
     std::condition_variable cv_;
     std::mutex cv_m;
+    bool login_flag_ = false;
 };
 
 class Order

@@ -104,19 +104,6 @@ void Server::heartbeat(Connection *cn)
 	}
 }
 
-Connection* Server::getConnectionObject(int connectionNum)
-{
-	try
-	{
-		return connStorage_[connectionNum];
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-		return nullptr;
-	}
-}
-
 void Server::msgRecv(Connection *cn)
 {
 	std::string recvStr;
@@ -163,7 +150,8 @@ void Server::freeEmptysocket()
 	{
 		if(!it->second->getRecvStatus())
 		{
-			logwrite->write(LogLevel::DEBUG, "(Server): free empty socket");
+			std::cout<<it->first<<std::endl;
+			logwrite->write(LogLevel::DEBUG, "(Server): free empty socket " + std::to_string(it->first));
 			std::unique_lock<std::mutex> lckerase(mutex_);
 			it = connStorage_.erase(it);
 			lckerase.unlock();
