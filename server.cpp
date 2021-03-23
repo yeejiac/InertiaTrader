@@ -132,7 +132,13 @@ void Server::msgRecv(Connection *cn)
 			{
 				subStr = recvStr.substr(0, recvStr.length()-1);
 			}
-			dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID()));
+			if(cn->login_flag)
+				dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID()));
+			else
+			{
+				logwrite->write(LogLevel::DEBUG, " Server Receive : " + subStr);
+				cn->sendto("not log in");
+			}	
 		}
 		else
 		{

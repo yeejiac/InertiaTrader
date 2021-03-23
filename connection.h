@@ -31,6 +31,7 @@ public:
     bool recvfrom(std::string& str);
     void sendto(std::string str);
     int getConnectionID();
+    bool login_flag = false;
 private:
     int connection_socket_;
     int connectionID_;
