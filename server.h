@@ -19,6 +19,7 @@
 #include "./funclib/dataQueue.h"
 #include "./funclib/initParser.h"
 #include "./funclib/logwriter.h"
+#include "./database/mariaDBHandler.h"
 
 #include "connection.h"
 
@@ -38,6 +39,7 @@ public:
 	void setconnStatus(bool connStatus);
 	bool getconnStatus();
 	void freeEmptysocket();
+	void loginMsgHandle();
 	Logwriter *logwrite;
 	DataQueue *dq = new DataQueue(10);
 	std::string initFilePath;

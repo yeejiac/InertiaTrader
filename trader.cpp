@@ -1,13 +1,40 @@
 #include "trader.h"
 
+RiskController::RiskController(){}
+
+void RiskController::verify(Order *order, double priceNow)
+{
+    //委託單基本風控
+    if(order->getPrice()>priceNow*1.1||order->getPrice()<priceNow*0.9) //委託價檢核
+    {
+        order->setStatus(OrderStatus::FAILED);
+    }
+    else
+    {
+        order->setStatus(OrderStatus::FAILED);
+    }
+    Report *rpt = new Report(order);
+}
+
 Order::Order(std::string text, int stockNum):stockNum_(stockNum)
 {
+    logwrite->write(LogLevel::DEBUG, " [Order] : Order initialise");
     nid_ = std::stol(text.substr(0, text.find(DELIMITER)));
     price_ = std::stoi(text.substr(1, text.find(DELIMITER)));
     side_ = std::stoi(text.substr(2, text.find(DELIMITER)));
     market_ = std::stoi(text.substr(3, text.find(DELIMITER)));
-    ordertype_ = std::stoi(text.substr(4, text.find(DELIMITER)));
+    ordertype_ = (OrderType)std::stoi(text.substr(4, text.find(DELIMITER)));
     timeString_ = text.substr(5, text.find(DELIMITER));
+}
+
+void Order::setStatus(OrderStatus status)
+{
+    orderstatus_ = status;
+}
+
+OrderStatus Order::getStatus()
+{
+    return orderstatus_;
 }
 
 void Report::setReportType(ReportType rpt)
@@ -42,11 +69,6 @@ std::string Report::composeReport()
     }
     else
     {
-        std::cout<<"123454321"<<std::endl;
-        std::cout<<" 1234321 "<<std::endl;
-        std::cout<<"  12321  "<<std::endl;
-        std::cout<<"   121   "<<std::endl;
-        std::cout<<"    1    "<<std::endl;
         std::cout<<"ErrorReport"<<std::endl;
         reportTex = "101|" + std::to_string(nid_) + '|' + orderNum_ + '|' + price_ + '|' + side_ + '|' + market_ + '|' + ordertype_ + '|' + timeString_;
     }
@@ -56,6 +78,16 @@ std::string Report::composeReport()
 Trader::Trader()
 {
     logwrite->write(LogLevel::DEBUG, "Virtual trader initialise");
+}
+
+void Trader::setTraderStatus(bool status)
+{
+    traderstatus_ = status;
+}
+
+bool Trader::getTraderStatus()
+{
+    return traderstatus_;
 }
 
 void Trader::rawStrHandle(std::string rawStr)
@@ -85,13 +117,64 @@ void Trader::orderDataInsert(std::string str)
 
 void Trader::matchup()
 {
-    std::vector<Order>::iterator ptr; 
-    std::vector<Order>::iterator ptr2;
-    for(ptr = buyside_.begin(); ptr < buyside_.end(); ptr++)
+    while(getTraderStatus())
     {
-        for(ptr2 = sellside_.begin(); ptr2 < sellside_.end(); ptr2++)
+        for(auto b = buyside_.begin(); b != buyside_.end();) 
         {
-            // if(*ptr->)
+            for(auto s = sellside_.begin(); s != sellside_.end();) 
+            {
+                if(*b->getPrice() == *s->getPrice())
+                {
+                    Report *report_buy = new Report(&b);
+                    Report *report_sell = new Report(&s);
+                    b = buyside_.erase(b);
+                    s = sellside_.erase(s);
+                }
+                else
+                    ++s;
+            }
+            ++b;
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(10)); //十秒撮合一次
+    }
+}
+
+void Trader::getOrder()
+{
+    while(getTraderStatus())
+    {
+        std::unique_lock<std::mutex> lk(cv_m);
+        cv_.wait_for(lk, 1, [&]{return sr->dq->checkSpace() > 0;});
+        orderDataInsert(sr->dq->popDTA());
+    }
+}
+
+void Trader::sendReport()
+{
+    while(getTraderStatus())
+    {
+        std::unique_lock<std::mutex> lk(cv_m);
+        cv_.wait_for(lk, 1, [&]{return reportList_.size() > 0;});
+        for(int i = 0; i<reportList_.size();i++)
+        {
+            std::string str = reportList_[i]->composeReport();
+            //需要修改socket class來識別每一個連線的ID，才能根據每個ID來取得Connection 物件
+            sr->getConnectionObject(0)->sendto(str);
         }
     }
+}
+
+void Trader::startTransaction()
+{
+    //整體交易流程
+    // 1. 啟動socket開啟競價模式
+    // 2. 收委託單並進行風控
+    // 3. 發送回報資料(委託回報或成交回報)
+    // 4. 媒合委託單
+    sr = new Server("./doc/settings.ini", "socket", "./log/");
+    std::thread orderReceive(&Trader::getOrder, this);
+    std::thread matchup(&Trader::matchup, this);
+
+    orderReceive.detach();
+    matchup.detach();
 }
