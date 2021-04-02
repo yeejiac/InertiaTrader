@@ -25,6 +25,10 @@ main: $(CXXFILE)
 	g++ $(DEBUG) $(CXXFILE) ./lib/libcommon.so ./funclib/dataQueue.cpp connection.cpp  $(SERVER) \
 	$(CXX) $(SERVER_TARGET)
 
+testclient: $(CXXFILE)
+	g++ $(DEBUG) ./lib/libcommon.so ./funclib/dataQueue.cpp ./testing_client/$(CLIENT) \
+	$(CXX) $(CLIENT_TARGET)
+
 initParser:
 	g++ -std=c++11 -fPIC -c $(FILEPATH)initParser.cpp -o $(BIN)initParser.o
 
