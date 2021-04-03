@@ -4,13 +4,13 @@ Client::Client(std::string initFilePath, std::string initchosen, std::string log
 {
     logwrite = new Logwriter("CL", logPath);
 	ip = new InitParser(initFilePath, initchosen);
-    //connStatus_ = true;
     allowConn();
-    std::thread sendtd(&Client::sendTypeMsg,this);
+    //std::thread sendtd(&Client::sendTypeMsg,this);
     std::thread recvtd(&Client::recvMsg,this);
-    sendtd.detach();
-    recvtd.join();
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::thread heatbeat(&Client::heartbeatSending, this);
+    //sendtd.join();
+    heatbeat.join();
+    recvtd.detach();
 };
 
 void Client::setConnStatus(bool connStatus)
@@ -39,7 +39,6 @@ void Client::socketini()
     }
 
     int addlen = sizeof(addr);
-
     serv_addr_.sin_family = AF_INET;
     serv_addr_.sin_port = htons(port);
 
@@ -67,75 +66,71 @@ void Client::allowConn()
         if (getConnStatus()) 
         {
             logwrite->write(LogLevel::DEBUG, "(Client) connect success ");
+            firstconn_flag_ = false;
             cv_.notify_all();
+            connCalculate = 0;
             break;
         }
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        logwrite->write(LogLevel::DEBUG, "(Client) try connect" );
-    }
-}
-
-void Client::sendMsg()
-{
-    while(true)
-    {
-        std::string str = "Testing Msg";
-        sendSignal_ = send(sockfd_, str.c_str(), recvbuflen_, 0);
-        if(sendSignal_<0)
+        else if(firstconn_flag_)
         {
-            logwrite->write(LogLevel::ERROR, "(Client) send failed");
-            std::unique_lock<std::mutex> lck2(mutex_);
-            cv_.wait(lck2);
+            logwrite->write(LogLevel::DEBUG, "(Client) Connect failed" );
+            exit_flag_ = true;
+            break;
         }
         else
         {
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-        } 
+            logwrite->write(LogLevel::DEBUG, "(Client) try connect" );
+            connCalculate++;
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        
+        if(connCalculate>3)
+        {
+            exit_flag_ = true;
+            logwrite->write(LogLevel::DEBUG, "(Client) reconnect failed" );
+            break;
+        }
+    }
+}
+
+void Client::sendMsg(std::string str)
+{
+    try
+    {
+        sendSignal_ = send(sockfd_, str.c_str(), recvbuflen_, 0);
+        if(sendSignal_<0)
+            throw "error";
+    }
+    catch(...)
+    {
+        logwrite->write(LogLevel::ERROR, "(Client) send failed ");
+        std::unique_lock<std::mutex> lck2(mutex_);
+        cv_.wait(lck2);
     }
 }
 
 void Client::sendTypeMsg()
 {
-    while(true)
+    while(!exit_flag_)
     {
         std::string str;
         std::cin>>str;
-        sendSignal_ = send(sockfd_, str.c_str(), recvbuflen_, 0);
-        if(sendSignal_<0)
-        {
-            logwrite->write(LogLevel::ERROR, "(Client) send failed");
-            std::unique_lock<std::mutex> lck2(mutex_);
-            cv_.wait(lck2);
-        }
-        else
-        {
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-        } 
+        sendMsg(str.c_str());
     }
 }
 
 void Client::heartbeatSending()
 {
-    while(true)
+    while(!exit_flag_)
     {
-        std::string str = "HeartBeat";
-        sendSignal_ = send(sockfd_, str.c_str(), recvbuflen_, 0);
-        if(sendSignal_<0)
-        {
-            logwrite->write(LogLevel::ERROR, "(Client) send failed");
-            std::unique_lock<std::mutex> lck2(mutex_);
-            cv_.wait(lck2);
-        }
-        else
-        {
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-        } 
+        sendMsg("<3");
+        std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 }
 
 void Client::recvMsg()
 {
-    while(true)
+    while(!exit_flag_)
     {
         recvSignal_ = recv(sockfd_, buffer_, recvbuflen_, 0);
         if ( recvSignal_ > 0 )
@@ -148,10 +143,7 @@ void Client::recvMsg()
             logwrite->write(LogLevel::ERROR, "(Client) recv failed");
             close(sockfd_);
             setConnStatus(false);
-            std::thread reconn(&Client::allowConn,this);
-            reconn.detach();
-            std::unique_lock<std::mutex> lck2(mutex_);
-            cv_.wait(lck2);
+            allowConn();
         }
     }
 }

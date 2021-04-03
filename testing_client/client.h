@@ -20,6 +20,7 @@
 
 #define buffer 1024
 
+
 class Client
 {
 public:
@@ -28,7 +29,7 @@ public:
     void allowConn();
     void setConnStatus(bool stat);
     bool getConnStatus();
-    void sendMsg();
+    void sendMsg(std::string str);
     void sendTypeMsg();
     void heartbeatSending();
     void recvMsg();
@@ -36,9 +37,12 @@ public:
     Logwriter *logwrite;
     InitParser *ip;
 	DataQueue *dq;
+    int connCalculate = 0;
 	
 private:
     std::string configSelect_;
+    bool exit_flag_ = false;
+    bool firstconn_flag_ = true;
     bool connStatus_ = false;
     int sockfd_;
     struct sockaddr_in serv_addr_ ;
