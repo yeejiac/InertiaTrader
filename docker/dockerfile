@@ -1,0 +1,5 @@
+FROM rhscl/devtoolset-7-toolchain-rhel7
+
+USER 0
+RUN yum install -y --setopt=tsflags=nodocs boost-devel && yum clean all -y
+USER 1001
