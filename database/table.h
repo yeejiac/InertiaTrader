@@ -20,3 +20,9 @@ struct ReportData
     std::string symbol; //商品代號
     std::string userID; //委託人帳號
 };
+
+struct UserData
+{
+    std::string userID;
+    std::string password;
+};

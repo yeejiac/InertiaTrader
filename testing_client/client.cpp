@@ -98,6 +98,7 @@ void Client::sendMsg(std::string str)
     try
     {
         sendSignal_ = send(sockfd_, str.c_str(), recvbuflen_, 0);
+        logwrite->write(LogLevel::DEBUG, "(Client) Send Message " + str);
         if(sendSignal_<0)
             throw "error";
     }
@@ -123,7 +124,7 @@ void Client::heartbeatSending()
 {
     while(!exit_flag_)
     {
-        sendMsg("<3");
+        sendMsg("<3&");
         std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 }
