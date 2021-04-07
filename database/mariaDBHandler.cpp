@@ -71,7 +71,7 @@ void MariaDBHandler::insertOrderData(struct OrderData)
         logwrite->write(LogLevel::DEBUG, "(MariaDB) Insert Success");
 }
 
-<<<<<<< HEAD
+
 // int main()
 // {
 //     MariaDBHandler *dbm = new MariaDBHandler();
@@ -80,15 +80,6 @@ void MariaDBHandler::insertOrderData(struct OrderData)
 //     OrderData od;
 //     dbm->insertOrderData(od);
 // }
-=======
-int main()
-{
-    MariaDBHandler *dbm = new MariaDBHandler();
-    if(dbm->initialise("database"))
-        std::cout<<"success"<<std::endl;;
-    OrderData od;
-    dbm->insertOrderData(od);
-}
->>>>>>> 48b822849f76dc92099e0e0cdcfd2b2bc506a0dc
+
 
 // g++ -std=c++11 ../lib/libcommon.so -lmysqlclient mariaDBHandler.cpp -o test.out

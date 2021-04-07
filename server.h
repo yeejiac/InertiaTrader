@@ -19,6 +19,7 @@
 #include "./funclib/dataQueue.h"
 #include "./funclib/initParser.h"
 #include "./funclib/logwriter.h"
+#include "./funclib/simplefunc.h"
 #include "./database/mariaDBHandler.h"
 
 #include "connection.h"
@@ -34,6 +35,7 @@ public:
 	void socketini();
 	void acceptConn();
 	void msgRecv(Connection *cn);
+	void msgHandler(std::string msg);
 	void send(Connection *cn);
 	void heartbeat(Connection *cn);
 	void setconnStatus(bool connStatus);

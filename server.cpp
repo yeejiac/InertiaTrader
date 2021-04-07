@@ -132,12 +132,14 @@ void Server::msgRecv(Connection *cn)
 			{
 				subStr = recvStr.substr(0, recvStr.length()-1);
 			}
+			logwrite->write(LogLevel::DEBUG, " Server Receive : " + subStr);
+			msgHandler(subStr);
 			if(cn->login_flag)
 				dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID()));
 			else
 			{
-				logwrite->write(LogLevel::DEBUG, " Server Receive : " + subStr);
-				cn->sendto("not log in");
+				if(subStr != "<3")
+					cn->sendto("not log in");
 			}	
 		}
 		else
@@ -146,6 +148,19 @@ void Server::msgRecv(Connection *cn)
 			freeEmptysocket();
 		}
 		std::this_thread::sleep_for(std::chrono::seconds(2));
+	}
+}
+
+void Server::msgHandler(std::string msg)
+{
+	if(msg == "<3")
+		return;
+	switch(std::stoi(split(msg, "|")[0]))
+	{
+		case 87:
+			logwrite->write(LogLevel::DEBUG, "(Server) 下單處理");
+		case 1234:
+			logwrite->write(LogLevel::DEBUG, "(Server) login verify");
 	}
 }
 

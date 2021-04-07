@@ -7,6 +7,7 @@ FILEPATH=./funclib/
 LIBPATH=./lib/
 CXX=-std=c++11 -Wall -W -pthread
 THREAD=-lpthread
+SSLFLAG=-lcrypto
 DEBUG= -g -w
 BIN=./lib/
 LIB=-lcommonLib -lstdc++ -lpthread
@@ -22,8 +23,12 @@ OBJS=$(LIBS:.cpp=.o )
 OFILE=$(wildcard $(LIBPATH)*.o)
 
 main: $(CXXFILE)
-	g++ $(DEBUG) $(CXXFILE) ./lib/libcommon.so ./funclib/dataQueue.cpp connection.cpp  $(SERVER) \
+	g++ $(DEBUG) $(CXXFILE) ./lib/libcommon.so ./funclib/dataQueue.cpp ./funclib/simplefunc.cpp connection.cpp  $(SERVER) \
 	$(CXX) $(SERVER_TARGET)
+
+testclient: $(CXXFILE)
+	g++ $(DEBUG) ./lib/libcommon.so ./funclib/dataQueue.cpp ./testing_client/$(CLIENT) \
+	$(CXX) $(CLIENT_TARGET)
 
 initParser:
 	g++ -std=c++11 -fPIC -c $(FILEPATH)initParser.cpp -o $(BIN)initParser.o
