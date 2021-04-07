@@ -60,3 +60,8 @@ int Connection::getConnectionID()
 {
     return connectionID_;
 }
+
+void Connection::loginVerify()
+{
+    
+}

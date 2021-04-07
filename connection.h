@@ -30,6 +30,7 @@ public:
     bool getRecvStatus();
     bool recvfrom(std::string& str);
     void sendto(std::string str);
+    void loginVerify();
     int getConnectionID();
     bool login_flag = false;
 private:

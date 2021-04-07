@@ -134,6 +134,7 @@ void Server::msgRecv(Connection *cn)
 			}
 			logwrite->write(LogLevel::DEBUG, " Server Receive : " + subStr);
 			msgHandler(subStr);
+			//dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID())); //測試用
 			if(cn->login_flag)
 				dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID()));
 			else

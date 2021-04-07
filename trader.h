@@ -17,45 +17,7 @@
 
 #define DELIMITER '|'
 
-Logwriter *logwrite;
-
-class RiskController
-{
-public:
-    RiskController();
-    ~RiskController();
-    void verify(Order *order, double priceNow);
-private:
-    std::string originalText;
-};
-
-class Trader
-{
-public:
-    Trader();
-    ~Trader();
-    void setTraderStatus(bool status);
-    bool getTraderStatus();
-    void rawStrHandle(std::string rawStr);
-    void orderDataInsert(std::string str);
-    void matchup();
-    void loadInitialise();
-    void getOrder();
-    void sendReport();
-    int checkDataQueue();
-    void startTransaction();
-    Logwriter *logwrite;
-    Server *sr;
-private:
-    std::vector<Order*> buyside_;
-    std::vector<Order*> sellside_;
-    std::vector<Report*> reportList_;
-    std::map<std::string, Stock*> stockList_;
-    bool traderstatus_;
-    std::condition_variable cv_;
-    std::mutex cv_m;
-    bool login_flag_ = false;
-};
+// Logwriter *logwrite;
 
 class Order
 {
@@ -64,7 +26,7 @@ public:
     ~Order();
     long getNid();
     void setNid();
-    void setside();
+    void setside(Side side);
     Side getside();
     void setPrice();
     double getPrice();
@@ -114,6 +76,44 @@ private:
     double priceNow_;
     double priceMax_;
     double priceMin_;
+};
+
+class RiskController
+{
+public:
+    RiskController();
+    ~RiskController();
+    void verify(Order *order, double priceNow);
+private:
+    std::string originalText;
+};
+
+class Trader
+{
+public:
+    Trader();
+    ~Trader();
+    void setTraderStatus(bool status);
+    bool getTraderStatus();
+    void rawStrHandle(std::string rawStr);
+    void orderDataInsert(std::string str);
+    void matchup();
+    void loadInitialise();
+    void getOrder();
+    void sendReport();
+    int checkDataQueue();
+    void startTransaction();
+    Server *sr;
+    bool dqstatus = false;
+private:
+    std::vector<Order*> buyside_;
+    std::vector<Order*> sellside_;
+    std::vector<Report*> reportList_;
+    std::map<std::string, Stock*> stockList_;
+    bool traderstatus_;
+    std::condition_variable cv_;
+    std::mutex cv_m;
+    bool login_flag_ = false;
 };
 
 #endif
