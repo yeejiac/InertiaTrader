@@ -60,3 +60,13 @@ int Connection::getConnectionID()
 {
     return connectionID_;
 }
+
+void Connection::setloginFlag(bool flag)
+{
+    login_flag_ = flag;
+}
+
+bool Connection::getloginstatus()
+{
+    return login_flag_;
+}

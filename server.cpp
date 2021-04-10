@@ -4,6 +4,7 @@ Server::Server(std::string initFilePath, std::string initchosen, std::string log
 logPath(logPath)
 {
 	logwrite = new Logwriter("SR", logPath);
+	essentialData_initialise();
 	socketini();
 	std::thread connacpt(&Server::acceptConn,this);
 	connacpt.join();
@@ -55,6 +56,12 @@ void Server::socketini()
 	}
 	setconnStatus(true);
 	logwrite->write(LogLevel::DEBUG, "server socket init success");
+}
+
+void Server::essentialData_initialise()
+{
+	TradingDataHandler *db = new TradingDataHandler("database");
+	userList = db->getUserData();
 }
 
 void Server::acceptConn()
@@ -115,7 +122,7 @@ void Server::msgRecv(Connection *cn)
 		connStatus = cn->recvfrom(recvStr);
 		if(connStatus)
 		{
-			if(tempStr!="")
+			if(tempStr!=""&&recvStr!="<3&")
 			{
 				recvStr = tempStr + recvStr;
 				tempStr = "";
@@ -133,8 +140,9 @@ void Server::msgRecv(Connection *cn)
 				subStr = recvStr.substr(0, recvStr.length()-1);
 			}
 			logwrite->write(LogLevel::DEBUG, " Server Receive : " + subStr);
-			msgHandler(subStr);
-			if(cn->login_flag)
+			msgHandler(subStr, cn);
+			//dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID())); //測試用
+			if(cn->getloginstatus()&&subStr!="<3")
 				dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID()));
 			else
 			{
@@ -151,16 +159,42 @@ void Server::msgRecv(Connection *cn)
 	}
 }
 
-void Server::msgHandler(std::string msg)
+void Server::msgHandler(std::string msg, Connection *cn)
 {
 	if(msg == "<3")
 		return;
-	switch(std::stoi(split(msg, "|")[0]))
+	std::vector<std::string> res = split(msg, "|");
+	switch(std::stoi(res[0]))
 	{
 		case 87:
 			logwrite->write(LogLevel::DEBUG, "(Server) 下單處理");
+			break;
 		case 1234:
 			logwrite->write(LogLevel::DEBUG, "(Server) login verify");
+			try
+			{
+				if(userList.size()>0)
+				{
+					std::map<std::string, std::string>::iterator it = userList.find(res[1]);
+					std::cout<<it->second<<std::endl;
+					std::cout<<res[2]<<std::endl;
+					if(it->second == res[2])
+					{
+						logwrite->write(LogLevel::DEBUG, "(Server) login success");
+						cn->setloginFlag(true);
+					}	
+				}
+				else
+				{
+					std::cout<<"No data"<<std::endl;
+				}
+				break;
+			}
+			catch(const std::exception& e)
+			{
+				std::cerr << e.what() << '\n';
+			}
+			break;
 	}
 }
 

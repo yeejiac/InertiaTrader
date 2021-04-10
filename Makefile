@@ -2,18 +2,21 @@
 # -lWs2_32 use for socket
 # -w ignore warning
 SERVER=server.cpp
+TRADER=trader.cpp
 CLIENT=client.cpp
 FILEPATH=./funclib/
 LIBPATH=./lib/
 CXX=-std=c++11 -Wall -W -pthread
 THREAD=-lpthread
 SSLFLAG=-lcrypto
+DBFLAG=-lmysqlclient
 DEBUG= -g -w
 BIN=./lib/
 LIB=-lcommonLib -lstdc++ -lpthread
 
 CXXFILE=main.cpp
 TARGET=-o test.exe
+TRADER_SERVER=-o trader.out
 SERVER_TARGET=-o server.out
 CLIENT_TARGET=-o client.out
 
@@ -23,8 +26,9 @@ OBJS=$(LIBS:.cpp=.o )
 OFILE=$(wildcard $(LIBPATH)*.o)
 
 main: $(CXXFILE)
-	g++ $(DEBUG) $(CXXFILE) ./lib/libcommon.so ./funclib/dataQueue.cpp ./funclib/simplefunc.cpp connection.cpp  $(SERVER) \
-	$(CXX) $(SERVER_TARGET)
+	g++ $(DEBUG) $(CXXFILE) $(DBFLAG) $(SSLFLAG) ./lib/libcommon.so ./funclib/dataQueue.cpp ./funclib/simplefunc.cpp \
+	connection.cpp ./database/mariaDBHandler.cpp ./database/tradingDataHandler.cpp $(SERVER) $(TRADER) \
+	$(CXX) $(TRADER_SERVER)
 
 testclient: $(CXXFILE)
 	g++ $(DEBUG) ./lib/libcommon.so ./funclib/dataQueue.cpp ./testing_client/$(CLIENT) \

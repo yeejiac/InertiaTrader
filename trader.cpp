@@ -2,27 +2,26 @@
 
 RiskController::RiskController(){}
 
-void RiskController::verify(Order *order, double priceNow)
-{
-    //委託單基本風控
-    if(order->getPrice()>priceNow*1.1||order->getPrice()<priceNow*0.9) //委託價檢核
-    {
-        order->setStatus(OrderStatus::FAILED);
-    }
-    else
-    {
-        order->setStatus(OrderStatus::FAILED);
-    }
-    Report *rpt = new Report(order);
-}
+// void RiskController::verify(Order *order, double priceNow)
+// {
+//     //委託單基本風控
+//     if(order->getPrice()>priceNow*1.1||order->getPrice()<priceNow*0.9) //委託價檢核
+//     {
+//         order->setStatus(OrderStatus::FAILED);
+//     }
+//     else
+//     {
+//         order->setStatus(OrderStatus::FAILED);
+//     }
+//     Report *rpt = new Report(order);
+// }
 
 Order::Order(std::string text, int stockNum):stockNum_(stockNum)
 {
-    logwrite->write(LogLevel::DEBUG, " [Order] : Order initialise");
     nid_ = std::stol(text.substr(0, text.find(DELIMITER)));
     price_ = std::stoi(text.substr(1, text.find(DELIMITER)));
-    side_ = std::stoi(text.substr(2, text.find(DELIMITER)));
-    market_ = std::stoi(text.substr(3, text.find(DELIMITER)));
+    side_ = static_cast<Side>(std::stoi(text.substr(2, text.find(DELIMITER))));
+    market_ = static_cast<Market>(std::stoi(text.substr(3, text.find(DELIMITER))));
     ordertype_ = (OrderType)std::stoi(text.substr(4, text.find(DELIMITER)));
     timeString_ = text.substr(5, text.find(DELIMITER));
 }
@@ -35,6 +34,16 @@ void Order::setStatus(OrderStatus status)
 OrderStatus Order::getStatus()
 {
     return orderstatus_;
+}
+
+void Order::setside(Side side)
+{
+    side_ = side;
+}
+
+Side Order::getside()
+{
+    return side_;
 }
 
 void Report::setReportType(ReportType rpt)
@@ -50,34 +59,37 @@ long Report::generateNid()
     return key;
 }
 
-std::string Report::composeReport()
-{
-    std::string reportTex = "";
-    if(reportType_ == ReportType::NONE)
-    {
-        std::cout<<"lack of report type"<<std::endl;
-    }
-    else if(reportType_ == ReportType::OrderReport)
-    {
-        std::cout<<"OrderReport"<<std::endl;
-        reportTex = "100|" + std::to_string(nid_) + '|' + orderNum_ + '|' + price_ + '|' + side_ + '|' + market_ + '|' + ordertype_ + '|' + timeString_;
-    }
-    else if(reportType_ == ReportType::ExecutionReport)
-    {
-        std::cout<<"ExecutionReport"<<std::endl;
-        reportTex = "102|" + std::to_string(nid_) + '|' + orderNum_ + '|' + price_ + '|' + side_ + '|' + market_ + '|' + ordertype_ + '|' + timeString_;
-    }
-    else
-    {
-        std::cout<<"ErrorReport"<<std::endl;
-        reportTex = "101|" + std::to_string(nid_) + '|' + orderNum_ + '|' + price_ + '|' + side_ + '|' + market_ + '|' + ordertype_ + '|' + timeString_;
-    }
-    return reportTex;
-}
+// std::string Report::composeReport()
+// {
+//     std::string reportTex = "";
+//     if(reportType_ == ReportType::NONE)
+//     {
+//         std::cout<<"lack of report type"<<std::endl;
+//     }
+//     else if(reportType_ == ReportType::OrderReport)
+//     {
+//         std::cout<<"OrderReport"<<std::endl;
+//         reportTex = "100|" + std::to_string(nid_) + '|' + orderNum_ + '|' + std::to_string(price_) + '|' + static_cast<Side>(side_) + 
+//                     '|' + static_cast<Market>(market_) + '|' + static_cast<OrderType>(ordertype_) + '|' + timeString_;
+//     }
+//     else if(reportType_ == ReportType::ExecutionReport)
+//     {
+//         std::cout<<"ExecutionReport"<<std::endl;
+//         reportTex = "102|" + std::to_string(nid_) + '|' + orderNum_ + '|' + std::to_string(price_) + '|' + static_cast<Side>(side_) + 
+//                     '|' + static_cast<Market>(market_) + '|' + static_cast<OrderType>(ordertype_) + '|' + timeString_;
+//     }
+//     else
+//     {
+//         std::cout<<"ErrorReport"<<std::endl;
+//         reportTex = "101|" + std::to_string(nid_) + '|' + orderNum_ + '|' + std::to_string(price_) + '|' + static_cast<Side>(side_) + 
+//                     '|' + static_cast<Market>(market_) + '|' + static_cast<OrderType>(ordertype_) + '|' + timeString_;
+//     }
+//     return reportTex;
+// }
 
 Trader::Trader()
 {
-    logwrite->write(LogLevel::DEBUG, "Virtual trader initialise");
+    //logwrite->write(LogLevel::DEBUG, "Virtual trader initialise");
 }
 
 void Trader::setTraderStatus(bool status)
@@ -115,54 +127,62 @@ void Trader::orderDataInsert(std::string str)
         sellside_.push_back(order);
 }
 
-void Trader::matchup()
-{
-    while(getTraderStatus())
-    {
-        for(auto b = buyside_.begin(); b != buyside_.end();) 
-        {
-            for(auto s = sellside_.begin(); s != sellside_.end();) 
-            {
-                if(*b->getPrice() == *s->getPrice())
-                {
-                    Report *report_buy = new Report(&b);
-                    Report *report_sell = new Report(&s);
-                    b = buyside_.erase(b);
-                    s = sellside_.erase(s);
-                }
-                else
-                    ++s;
-            }
-            ++b;
-        }
-        std::this_thread::sleep_for(std::chrono::seconds(10)); //十秒撮合一次
-    }
-}
+// void Trader::matchup()
+// {
+//     while(getTraderStatus())
+//     {
+//         for(auto b = buyside_.begin(); b != buyside_.end();) 
+//         {
+//             for(auto s = sellside_.begin(); s != sellside_.end();) 
+//             {
+//                 if(*b->getPrice() == *s->getPrice())
+//                 {
+//                     Report *report_buy = new Report(&b);
+//                     Report *report_sell = new Report(&s);
+//                     b = buyside_.erase(b);
+//                     s = sellside_.erase(s);
+//                 }
+//                 else
+//                     ++s;
+//             }
+//             ++b;
+//         }
+//         std::this_thread::sleep_for(std::chrono::seconds(10)); //十秒撮合一次
+//     }
+// }
 
 void Trader::getOrder()
 {
     while(getTraderStatus())
     {
-        std::unique_lock<std::mutex> lk(cv_m);
-        cv_.wait_for(lk, 1, [&]{return sr->dq->checkSpace() > 0;});
-        orderDataInsert(sr->dq->popDTA());
+        if(sr->dq->checkSpace() > 0)
+        {
+            orderDataInsert(sr->dq->popDTA());
+        }
+        else
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+        }
+        // std::unique_lock<std::mutex> lk(cv_m);
+        // cv_.wait_for(lk, 1, []{return Trader::dqstatus;});
+        
     }
 }
 
-void Trader::sendReport()
-{
-    while(getTraderStatus())
-    {
-        std::unique_lock<std::mutex> lk(cv_m);
-        cv_.wait_for(lk, 1, [&]{return reportList_.size() > 0;});
-        for(int i = 0; i<reportList_.size();i++)
-        {
-            std::string str = reportList_[i]->composeReport();
-            //需要修改socket class來識別每一個連線的ID，才能根據每個ID來取得Connection 物件
-            sr->getConnectionObject(0)->sendto(str);
-        }
-    }
-}
+// void Trader::sendReport()
+// {
+//     while(getTraderStatus())
+//     {
+//         std::unique_lock<std::mutex> lk(cv_m);
+//         cv_.wait_for(lk, 1, [&]{return reportList_.size() > 0;});
+//         for(int i = 0; i<reportList_.size();i++)
+//         {
+//             std::string str = reportList_[i]->composeReport();
+//             //需要修改socket class來識別每一個連線的ID，才能根據每個ID來取得Connection 物件
+//             sr->getConnectionObject(0)->sendto(str);
+//         }
+//     }
+// }
 
 void Trader::startTransaction()
 {
@@ -173,8 +193,8 @@ void Trader::startTransaction()
     // 4. 媒合委託單
     sr = new Server("./doc/settings.ini", "socket", "./log/");
     std::thread orderReceive(&Trader::getOrder, this);
-    std::thread matchup(&Trader::matchup, this);
+    // std::thread matchup(&Trader::matchup, this);
 
     orderReceive.detach();
-    matchup.detach();
+    // matchup.detach();
 }

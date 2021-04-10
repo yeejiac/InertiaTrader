@@ -9,7 +9,7 @@ MariaDBHandler::~MariaDBHandler()
 
 bool MariaDBHandler::initialise(std::string cfg)
 {
-    std::unique_ptr<InitParser> ip(new InitParser("../doc/settings.ini", "database"));
+    std::unique_ptr<InitParser> ip(new InitParser("./doc/settings.ini", "database"));
     ip->readLine();
     MY_HOSTNAME = ip->iniContainer["addr"].c_str();
     MY_PORT = 3306;
