@@ -30,13 +30,16 @@ public:
     bool getRecvStatus();
     bool recvfrom(std::string& str);
     void sendto(std::string str);
-    void loginVerify();
+    void setloginFlag(bool flag);
+    bool getloginstatus();
     int getConnectionID();
-    bool login_flag = false;
+    Logwriter *logwrite;
+    
 private:
     int connection_socket_;
     int connectionID_;
     bool recvStatus_;
+    bool login_flag_;
     char buffer_[buffer];
 	int recvbuflen_ = buffer;
     mutable std::mutex mutex_;

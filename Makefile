@@ -9,6 +9,7 @@ LIBPATH=./lib/
 CXX=-std=c++11 -Wall -W -pthread
 THREAD=-lpthread
 SSLFLAG=-lcrypto
+DBFLAG=-lmysqlclient
 DEBUG= -g -w
 BIN=./lib/
 LIB=-lcommonLib -lstdc++ -lpthread
@@ -25,7 +26,8 @@ OBJS=$(LIBS:.cpp=.o )
 OFILE=$(wildcard $(LIBPATH)*.o)
 
 main: $(CXXFILE)
-	g++ $(DEBUG) $(CXXFILE) ./lib/libcommon.so ./funclib/dataQueue.cpp ./funclib/simplefunc.cpp connection.cpp $(SERVER) $(TRADER) \
+	g++ $(DEBUG) $(CXXFILE) $(DBFLAG) $(SSLFLAG) ./lib/libcommon.so ./funclib/dataQueue.cpp ./funclib/simplefunc.cpp \
+	connection.cpp ./database/mariaDBHandler.cpp ./database/tradingDataHandler.cpp $(SERVER) $(TRADER) \
 	$(CXX) $(TRADER_SERVER)
 
 testclient: $(CXXFILE)

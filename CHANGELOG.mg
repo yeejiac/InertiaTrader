@@ -12,3 +12,10 @@ Added
 *fix heartbeat sending issue
 *fix heartbeat recv issue
 *add md5 cipher mechanism
+
+2021/4/10
+Added
+*login verify mechanism
+
+**Bug wait for solved
+mysql easy get login failed respond

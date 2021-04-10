@@ -10,7 +10,7 @@ class TradingDataHandler:public MariaDBHandler
 public:
     TradingDataHandler(std::string iniopt);
     ~TradingDataHandler();
-    std::string getUserData(std::string username);
+    std::map<std::string, std::string> getUserData();
     bool insertOrder();
     unsigned char* md5(std::string plaintext);
 private:

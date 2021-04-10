@@ -15,33 +15,36 @@ unsigned char* TradingDataHandler::md5(std::string plaintext)
     return result;
 }
 
-std::string TradingDataHandler::getUserData(std::string username)
+std::map<std::string, std::string> TradingDataHandler::getUserData()
 {
+    std::map<std::string, std::string> result;
     if(!conn)
     {
         logwrite->write(LogLevel::ERROR, "(MariaDB) DB connect failed ");
-        return "";
+        return result;
     }
-    std::string sqlcommand = "select `password` from stock.User Where `user` = " + username + ";";
-    std::cout<<sqlcommand<<std::endl;
-    
-    try
+    std::string sqlcommand = "select * from stock.User ;";
+    logwrite->write(LogLevel::ERROR, "(MariaDB) sql command : " + sqlcommand);
+
+    mysql_query(conn, sqlcommand.c_str());
+    res = mysql_store_result(conn);
+    while ((row = mysql_fetch_row(res))) 
     {
-        mysql_query(conn, sqlcommand.c_str());
-        res = mysql_store_result(conn);
-        std::string hashval(reinterpret_cast<char*>(md5(mysql_fetch_row(res)[0])));
-        return hashval;
+        result.insert(std::pair<std::string, std::string>(row[0], row[1]));
     }
-    catch(...)
+
+    std::map<std::string, std::string>::iterator it;
+    for(it = result.begin(); it != result.end(); it++)
     {
-        logwrite->write(LogLevel::DEBUG, "(MariaDB) sql failed or no data ");
-        return "error";
+        std::cout<<it->first<<" "<<it->second<<std::endl;
     }
+    mysql_free_result(res);
+    return result;
 }
 
-int main()
-{
-    TradingDataHandler *db = new TradingDataHandler("database");
-    std::cout<<db->getUserData("0324027")<<std::endl;
+// int main()
+// {
+//     TradingDataHandler *db = new TradingDataHandler("database");
+//     std::cout<<db->getUserData("0324027")<<std::endl;
     
-}
+// }

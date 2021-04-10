@@ -20,7 +20,7 @@
 #include "./funclib/initParser.h"
 #include "./funclib/logwriter.h"
 #include "./funclib/simplefunc.h"
-#include "./database/mariaDBHandler.h"
+#include "./database/tradingDataHandler.h"
 
 #include "connection.h"
 
@@ -33,9 +33,10 @@ public:
 	Server(std::string initFilePath, std::string initchosen, std::string logPath);
 	~Server();
 	void socketini();
+	void essentialData_initialise();
 	void acceptConn();
 	void msgRecv(Connection *cn);
-	void msgHandler(std::string msg);
+	void msgHandler(std::string msg, Connection *cn);
 	void send(Connection *cn);
 	void heartbeat(Connection *cn);
 	void setconnStatus(bool connStatus);
@@ -47,6 +48,7 @@ public:
 	std::string initFilePath;
 	std::string initchosen;
 	std::string logPath;
+	std::map<std::string, std::string> userList;
 private:
 	int listenfd_;
 	int connfd_;
