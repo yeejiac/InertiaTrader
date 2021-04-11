@@ -11,7 +11,7 @@ public:
     TradingDataHandler(std::string iniopt);
     ~TradingDataHandler();
     std::map<std::string, std::string> getUserData();
-    bool insertOrder();
+    bool insertOrder(OrderData *od);
     unsigned char* md5(std::string plaintext);
 private:
 };

@@ -60,7 +60,7 @@ void Server::socketini()
 
 void Server::essentialData_initialise()
 {
-	TradingDataHandler *db = new TradingDataHandler("database");
+	db = new TradingDataHandler("database");
 	userList = db->getUserData();
 }
 
@@ -140,7 +140,11 @@ void Server::msgRecv(Connection *cn)
 				subStr = recvStr.substr(0, recvStr.length()-1);
 			}
 			logwrite->write(LogLevel::DEBUG, " Server Receive : " + subStr);
-			msgHandler(subStr, cn);
+			if(cn->getloginstatus())
+				msgHandler(subStr);
+			else
+				loginMsgHandle(subStr, cn);
+			
 			//dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID())); //測試用
 			if(cn->getloginstatus()&&subStr!="<3")
 				dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID()));
@@ -159,7 +163,7 @@ void Server::msgRecv(Connection *cn)
 	}
 }
 
-void Server::msgHandler(std::string msg, Connection *cn)
+void Server::msgHandler(std::string msg)
 {
 	if(msg == "<3")
 		return;
@@ -168,33 +172,51 @@ void Server::msgHandler(std::string msg, Connection *cn)
 	{
 		case 87:
 			logwrite->write(LogLevel::DEBUG, "(Server) 下單處理");
+			OrderData *od;
+			od->nid = std::stol(res[1]);
+			od->orderPrice = std::stoi(res[2]);
+			od->symbol = "TXO";
+			od->userID = "0324027";
+
+			if(db->insertOrder(od))
+				logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
+			else
+				logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
 			break;
-		case 1234:
-			logwrite->write(LogLevel::DEBUG, "(Server) login verify");
-			try
-			{
-				if(userList.size()>0)
-				{
-					std::map<std::string, std::string>::iterator it = userList.find(res[1]);
-					std::cout<<it->second<<std::endl;
-					std::cout<<res[2]<<std::endl;
-					if(it->second == res[2])
-					{
-						logwrite->write(LogLevel::DEBUG, "(Server) login success");
-						cn->setloginFlag(true);
-					}	
-				}
-				else
-				{
-					std::cout<<"No data"<<std::endl;
-				}
-				break;
-			}
-			catch(const std::exception& e)
-			{
-				std::cerr << e.what() << '\n';
-			}
+		default:
 			break;
+		
+	}
+}
+
+void Server::loginMsgHandle(std::string msg, Connection *cn)
+{
+	if(msg.substr(0,4) == "1234")
+	{
+		std::vector<std::string> res = split(msg, "|");
+		logwrite->write(LogLevel::DEBUG, "(Server) login verify");
+		try
+		{
+			if(userList.size()>0)
+			{
+				std::map<std::string, std::string>::iterator it = userList.find(res[1]);
+				std::cout<<it->second<<std::endl;
+				std::cout<<res[2]<<std::endl;
+				if(it->second == res[2])
+				{
+					logwrite->write(LogLevel::DEBUG, "(Server) login success");
+					cn->setloginFlag(true);
+				}	
+			}
+			else
+			{
+				std::cout<<"No data"<<std::endl;
+			}
+		}
+		catch(const std::exception& e)
+		{
+			std::cerr << e.what() << '\n';
+		}
 	}
 }
 

@@ -36,15 +36,16 @@ public:
 	void essentialData_initialise();
 	void acceptConn();
 	void msgRecv(Connection *cn);
-	void msgHandler(std::string msg, Connection *cn);
+	void msgHandler(std::string msg);
 	void send(Connection *cn);
 	void heartbeat(Connection *cn);
 	void setconnStatus(bool connStatus);
 	bool getconnStatus();
 	void freeEmptysocket();
-	void loginMsgHandle();
+	void loginMsgHandle(std::string msg, Connection *cn);
 	Logwriter *logwrite;
 	DataQueue *dq = new DataQueue(10);
+	TradingDataHandler *db;
 	std::string initFilePath;
 	std::string initchosen;
 	std::string logPath;

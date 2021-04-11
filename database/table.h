@@ -3,7 +3,6 @@
 struct OrderData
 {
     long nid; //網單編號
-    std::string orderID; //委託單號
     int volumn; //委託量
     double orderPrice; //委託價
     std::string symbol; //商品代號
