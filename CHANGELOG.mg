@@ -19,3 +19,7 @@ Added
 
 **Bug wait for solved
 mysql easy get login failed respond
+
+2021/4/11
+Added
+*Add order data to db
