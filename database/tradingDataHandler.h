@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <openssl/md5.h>
+#include <chrono>
+#include <thread>
 #include "mariaDBHandler.h"
 
 class TradingDataHandler:public MariaDBHandler

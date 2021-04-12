@@ -2,10 +2,16 @@
 
 TradingDataHandler::TradingDataHandler(std::string iniopt)
 {
-    if(initialise(iniopt))
-        logwrite->write(LogLevel::DEBUG, "(MariaDB) DB connect success ");
-    else
+    int i = 0;
+    while(!initialise(iniopt))
+    {
+        i++;
         logwrite->write(LogLevel::ERROR, "(MariaDB) DB connect failed ");
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        if(i>10)
+            return;
+    }
+    logwrite->write(LogLevel::DEBUG, "(MariaDB) DB connect success ");   
 }
 
 unsigned char* TradingDataHandler::md5(std::string plaintext)

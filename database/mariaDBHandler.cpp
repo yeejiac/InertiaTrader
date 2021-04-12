@@ -23,7 +23,11 @@ bool MariaDBHandler::initialise(std::string cfg)
         // Establish a MySQL connection
         conn = mysql_real_connect(conn, MY_HOSTNAME, MY_USERNAME, MY_PASSWORD, MY_DATABASE, MY_PORT, MY_SOCKET, 0);
         if(!conn)
+        {
             logwrite->write(LogLevel::ERROR, "(MariaDB) Connection Failed ");  
+            return false;
+        }
+            
     } 
     catch (char *e) 
     {
