@@ -5,14 +5,18 @@ logPath(logPath)
 {
 	logwrite = new Logwriter("SR", logPath);
 	essentialData_initialise();
-	socketini();
-	std::thread connacpt(&Server::acceptConn,this);
-	connacpt.join();
+	if(db->connstatus)
+	{
+		socketini();
+		std::thread connacpt(&Server::acceptConn,this);
+		connacpt.join();
+	}
 }
 
 Server::~Server()
 {
 	close(connfd_);
+	db->~TradingDataHandler();
 }
 
 void Server::setconnStatus(bool connStatus)

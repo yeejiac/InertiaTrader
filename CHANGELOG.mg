@@ -23,3 +23,9 @@ mysql easy get login failed respond
 2021/4/11
 Added
 *Add order data to db
+
+2021/4/12
+Fixed
+*Database ini problem
+*DB conn mechanism(try conn 10 times)
+need to fix initparser file

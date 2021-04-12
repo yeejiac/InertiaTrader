@@ -2,10 +2,24 @@
 
 TradingDataHandler::TradingDataHandler(std::string iniopt)
 {
-    if(initialise(iniopt))
-        logwrite->write(LogLevel::DEBUG, "(MariaDB) DB connect success ");
-    else
+    int i = 0;
+    while(!initialise(iniopt))
+    {
+        i++;
         logwrite->write(LogLevel::ERROR, "(MariaDB) DB connect failed ");
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        if(i>10)
+            return;
+        connstatus = false;
+    }
+    logwrite->write(LogLevel::DEBUG, "(MariaDB) DB connect success "); 
+    connstatus = true; 
+}
+
+TradingDataHandler::~TradingDataHandler()
+{
+    mysql_free_result(res);
+    mysql_close(conn);
 }
 
 unsigned char* TradingDataHandler::md5(std::string plaintext)
@@ -33,11 +47,11 @@ std::map<std::string, std::string> TradingDataHandler::getUserData()
         result.insert(std::pair<std::string, std::string>(row[0], row[1]));
     }
 
-    std::map<std::string, std::string>::iterator it;
-    for(it = result.begin(); it != result.end(); it++)
-    {
-        std::cout<<it->first<<" "<<it->second<<std::endl;
-    }
+    // std::map<std::string, std::string>::iterator it;
+    // for(it = result.begin(); it != result.end(); it++)
+    // {
+    //     std::cout<<it->first<<" "<<it->second<<std::endl;
+    // }
     mysql_free_result(res);
     return result;
 }

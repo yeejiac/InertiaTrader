@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <openssl/md5.h>
+#include <chrono>
+#include <thread>
 #include "mariaDBHandler.h"
 
 class TradingDataHandler:public MariaDBHandler
@@ -13,6 +15,7 @@ public:
     std::map<std::string, std::string> getUserData();
     bool insertOrder(OrderData *od);
     unsigned char* md5(std::string plaintext);
+    bool connstatus;
 private:
 };
 
