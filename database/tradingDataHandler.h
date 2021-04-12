@@ -15,6 +15,7 @@ public:
     std::map<std::string, std::string> getUserData();
     bool insertOrder(OrderData *od);
     unsigned char* md5(std::string plaintext);
+    bool connstatus;
 private:
 };
 

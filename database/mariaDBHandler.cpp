@@ -17,13 +17,14 @@ bool MariaDBHandler::initialise(std::string cfg)
     MY_PASSWORD = ip->iniContainer["password"].c_str();
     MY_DATABASE = ip->iniContainer["database"].c_str();
     MY_SOCKET = NULL;
+    std::cout<<MY_PASSWORD<<std::endl;
+    std::cout<<MY_DATABASE<<std::endl;
     try 
     {
         conn = mysql_init(NULL);
-        // Establish a MySQL connection
-        conn = mysql_real_connect(conn, MY_HOSTNAME, MY_USERNAME, MY_PASSWORD, MY_DATABASE, MY_PORT, MY_SOCKET, 0);
-        if(!conn)
+        if(!mysql_real_connect(conn, MY_HOSTNAME, MY_USERNAME, "Aa1234", MY_DATABASE, MY_PORT, MY_SOCKET, 0))
         {
+            std::cout<<mysql_error(conn)<<std::endl;
             logwrite->write(LogLevel::ERROR, "(MariaDB) Connection Failed ");  
             return false;
         }
