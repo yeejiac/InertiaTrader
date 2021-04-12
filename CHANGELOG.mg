@@ -28,3 +28,4 @@ Added
 Fixed
 *Database ini problem
 *DB conn mechanism(try conn 10 times)
+need to fix initparser file
