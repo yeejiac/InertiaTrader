@@ -7,7 +7,7 @@
 #include <string>
 #include <map>
 #include <vector>
-
+#include "logwriter.h"
 
 class InitParser
 {
@@ -16,7 +16,7 @@ public:
     void findLine();
     void readLine();
     std::map<std::string, std::string> iniContainer;
-
+    Logwriter *logwrite;
 private:
     std::vector<int> tagLineNum_;
     int startPos_ = 0;

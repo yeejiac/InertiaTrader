@@ -66,10 +66,13 @@ void InitParser::readLine()
 
 // int main()
 // {
-//     InitParser *ip = new InitParser("../doc/settings.ini", "socket");
+//     InitParser *ip = new InitParser("../doc/settings.ini", "database");
 //     ip->readLine();
 //     std::cout<<ip->iniContainer["addr"]<<std::endl;
+//     std::cout<<ip->iniContainer["user"]<<std::endl;
 //     std::cout<<ip->iniContainer["port"]<<std::endl;
+//     std::cout<<ip->iniContainer["password"]<<std::endl;
+//     std::cout<<ip->iniContainer["database"]<<std::endl;
 //     return 0;
 // }
 
