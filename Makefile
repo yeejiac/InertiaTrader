@@ -7,7 +7,7 @@ CLIENT=client.cpp
 FILEPATH=./funclib/
 DATABASE=./database/
 LIBPATH=./lib/
-CXX=-std=c++11 -Wall -W -pthread
+CXX=-std=c++11 -pthread
 THREAD=-lpthread
 SSLFLAG=-lcrypto
 DBFLAG=-lmysqlclient
