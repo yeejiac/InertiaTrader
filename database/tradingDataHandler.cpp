@@ -58,17 +58,19 @@ std::map<std::string, std::string> TradingDataHandler::getUserData()
 
 bool TradingDataHandler::insertOrder(OrderData *od)
 {
-    std::string value = std::to_string(od->nid) + ","  + std::to_string(od->orderPrice) + "," + od->symbol + "," + od->userID;
-    std::string query = "INSERT INTO `Order` (`NID`, `OrderPrice`, `Symbol`, `UserID`) VALUES (" + value + ");";
+    std::string value = od->nid + ","  + std::to_string(od->orderPrice) + "," +"'"+ od->symbol +"'" +"," + od->userID;
+    std::string query = "INSERT INTO `stock`.`Order` (`NID`, `OrderPrice`, `Symbol`, `UserID`) VALUES (" + value + ");";
     std::cout<<query<<std::endl;
     if (mysql_query(conn, query.c_str()) != 0)                   
     {    
         // fprintf(stderr, "%s\n", mysql_error(conn));     
         std::string msg(mysql_error(conn));                                                                                                                                                   
-        logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure " + msg);                                                                          
+        logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure " + msg);        
+        return false;                                                                  
     }
     else
         logwrite->write(LogLevel::DEBUG, "(MariaDB) Insert Success");
+        return true;
 }
 
 // int main()

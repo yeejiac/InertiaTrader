@@ -1,3 +1,3 @@
 #include <iostream>
-#include "server.h"
-#include "trader.h"
+#include "./src/server.h"
+#include "./src/trader.h"

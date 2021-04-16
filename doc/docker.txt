@@ -1,0 +1,2 @@
+docker rm `sudo docker ps -a -q`(remove all container)
+docker build -t inertiatrader . --no-cache

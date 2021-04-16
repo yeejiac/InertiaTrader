@@ -172,25 +172,34 @@ void Server::msgHandler(std::string msg)
 	if(msg == "<3")
 		return;
 	std::vector<std::string> res = split(msg, "|");
-	switch(std::stoi(res[0]))
+	try
 	{
-		case 87:
-			logwrite->write(LogLevel::DEBUG, "(Server) 下單處理");
-			OrderData *od;
-			od->nid = std::stol(res[1]);
-			od->orderPrice = std::stoi(res[2]);
-			od->symbol = "TXO";
-			od->userID = "0324027";
+		switch(std::stoi(res[0]))
+		{
+			case 87:
+				logwrite->write(LogLevel::DEBUG, "(Server) 下單處理");
+				od = new OrderData;
+				od->nid = res[1];
+				od->orderPrice = std::stod(res[2]);
+				od->symbol = "TXO";
+				od->userID = "0324027";
 
-			if(db->insertOrder(od))
-				logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
-			else
-				logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
-			break;
-		default:
-			break;
-		
+				if(db->insertOrder(od))
+					logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
+				else
+					logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
+				break;
+			default:
+				break;
+			
+		}
 	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
+	
+	
 }
 
 void Server::loginMsgHandle(std::string msg, Connection *cn)

@@ -16,11 +16,11 @@
 #include <thread>
 #include <map>
 #include <memory>
-#include "./funclib/dataQueue.h"
-#include "./funclib/initParser.h"
-#include "./funclib/logwriter.h"
-#include "./funclib/simplefunc.h"
-#include "./database/tradingDataHandler.h"
+#include "../funclib/dataQueue.h"
+#include "../funclib/initParser.h"
+#include "../funclib/logwriter.h"
+#include "../funclib/simplefunc.h"
+#include "../database/tradingDataHandler.h"
 
 #include "connection.h"
 
@@ -44,6 +44,7 @@ public:
 	void freeEmptysocket();
 	void loginMsgHandle(std::string msg, Connection *cn);
 	Logwriter *logwrite;
+	OrderData *od;
 	DataQueue *dq = new DataQueue(10);
 	TradingDataHandler *db;
 	std::string initFilePath;
