@@ -10,7 +10,7 @@ LIBPATH=./lib/
 CXX=-std=c++11 -pthread
 THREAD=-lpthread
 SSLFLAG=-lcrypto
-DBFLAG=-lmysqlclient
+DBFLAG=-L/usr/lib64 -lmysqlclient
 DEBUG= -g -w
 BIN=./lib/
 SRC=./src/
