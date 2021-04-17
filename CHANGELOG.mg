@@ -29,3 +29,11 @@ Fixed
 *Database ini problem
 *DB conn mechanism(try conn 10 times)
 need to fix initparser file
+
+2021/4/17
+Fixed
+*Order insert db issue
+*Order handling issue
+
+**Bug wait for solved
+logwriter unable to work at class trader

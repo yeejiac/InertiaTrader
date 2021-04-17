@@ -1,8 +1,7 @@
 #include <iostream>
 
-class OrderData
+struct OrderData
 {
-public:
     std::string nid; //網單編號
     int volumn; //委託量
     double orderPrice; //委託價

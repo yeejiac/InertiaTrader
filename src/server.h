@@ -21,7 +21,6 @@
 #include "../funclib/logwriter.h"
 #include "../funclib/simplefunc.h"
 #include "../database/tradingDataHandler.h"
-
 #include "connection.h"
 
 
@@ -42,6 +41,7 @@ public:
 	void setconnStatus(bool connStatus);
 	bool getconnStatus();
 	void freeEmptysocket();
+	void insertOrderToDB(OrderData *od);
 	void loginMsgHandle(std::string msg, Connection *cn);
 	Logwriter *logwrite;
 	OrderData *od;

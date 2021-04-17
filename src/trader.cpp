@@ -2,28 +2,29 @@
 
 RiskController::RiskController(){}
 
-// void RiskController::verify(Order *order, double priceNow)
-// {
-//     //委託單基本風控
-//     if(order->getPrice()>priceNow*1.1||order->getPrice()<priceNow*0.9) //委託價檢核
-//     {
-//         order->setStatus(OrderStatus::FAILED);
-//     }
-//     else
-//     {
-//         order->setStatus(OrderStatus::FAILED);
-//     }
-//     Report *rpt = new Report(order);
-// }
-
-Order::Order(std::string text, int stockNum):stockNum_(stockNum)
+void RiskController::verify(Order *order, double priceNow = 60)
 {
-    nid_ = std::stol(text.substr(0, text.find(DELIMITER)));
-    price_ = std::stoi(text.substr(1, text.find(DELIMITER)));
-    side_ = static_cast<Side>(std::stoi(text.substr(2, text.find(DELIMITER))));
-    market_ = static_cast<Market>(std::stoi(text.substr(3, text.find(DELIMITER))));
-    ordertype_ = (OrderType)std::stoi(text.substr(4, text.find(DELIMITER)));
-    timeString_ = text.substr(5, text.find(DELIMITER));
+    //委託單基本風控
+    order->setStatus(OrderStatus::VERIFIED);
+    // if(order->orderPrice>priceNow*1.1||order->orderPrice<priceNow*0.9) //委託價檢核
+    // {
+    //     order->setStatus(OrderStatus::VERIFIED);
+    // }
+    // else
+    // {
+    //     order->setStatus(OrderStatus::FAILED);
+    // }
+    // Report *rpt = new Report(order);
+}
+
+Order::Order()
+{
+    // nid_ = std::stol(text.substr(0, text.find(DELIMITER)));
+    // price_ = std::stoi(text.substr(1, text.find(DELIMITER)));
+    // side_ = static_cast<Side>(std::stoi(text.substr(2, text.find(DELIMITER))));
+    // market_ = static_cast<Market>(std::stoi(text.substr(3, text.find(DELIMITER))));
+    // ordertype_ = (OrderType)std::stoi(text.substr(4, text.find(DELIMITER)));
+    // timeString_ = text.substr(5, text.find(DELIMITER));
 }
 
 void Order::setStatus(OrderStatus status)
@@ -120,7 +121,7 @@ void Trader::rawStrHandle(std::string rawStr)
 void Trader::orderDataInsert(std::string str)
 {
     //New Order object and insert data
-    Order *order = new Order(str, 9527);
+    Order *order = new Order;
     if(order->getside() == Side::BUY)
         buyside_.push_back(order);
     else
@@ -153,18 +154,43 @@ void Trader::orderDataInsert(std::string str)
 
 void Trader::getOrder()
 {
+    //logwrite->write(LogLevel::DEBUG, "(Trader) Get Order thread start");
+    std::cout<<"(Trader) Get Order thread start"<<std::endl;
+    std::unique_lock<std::mutex> lk1(cv_m);
+    cv_.wait(lk1, [this]{return sr->getconnStatus();});
     while(getTraderStatus())
     {
-        if(sr->dq->checkSpace() > 0)
+        //logwrite->write(LogLevel::DEBUG, "(Trader) Wait Order insert");
+        std::cout<<"(Trader) Wait Order insert"<<std::endl;
+        // std::unique_lock<std::mutex> lk2(cv_m);
+        // cv_.wait(lk2, [this]{return sr->dq->checkSpace() != 0;});
+        //logwrite->write(LogLevel::DEBUG, "(Trader) Handle Order Msg");
+        if(sr->dq->checkSpace()>0)
         {
-            orderDataInsert(sr->dq->popDTA());
+            std::cout<<"(Trader) Handle Order Msg"<<std::endl;
+            std::vector<std::string> res = split(sr->dq->popDTA(), "|");
+            od = new Order;
+            od->nid = res[1];
+            od->orderPrice = std::stod(res[2]);
+            od->symbol = "TXO";
+            od->userID = "0324027";
+            std::cout<<od->userID<<std::endl;
+            rc->verify(od);
+            if(od->getStatus() == OrderStatus::VERIFIED)
+            {
+                std::cout<<"(Trader) Input data to db"<<std::endl;
+                odt = new OrderData;
+                odt->nid = od->nid;
+                odt->orderPrice =  od->orderPrice;
+                odt->symbol =  od->symbol;
+                odt->userID =  od->userID;
+                sr->insertOrderToDB(odt);
+            }
         }
         else
         {
             std::this_thread::sleep_for(std::chrono::seconds(5));
         }
-        // std::unique_lock<std::mutex> lk(cv_m);
-        // cv_.wait_for(lk, 1, []{return Trader::dqstatus;});
         
     }
 }
@@ -191,10 +217,12 @@ void Trader::startTransaction()
     // 2. 收委託單並進行風控
     // 3. 發送回報資料(委託回報或成交回報)
     // 4. 媒合委託單
+    setTraderStatus(true);
+    
     sr = new Server("./doc/settings.ini", "socket", "./log/");
     std::thread orderReceive(&Trader::getOrder, this);
+    orderReceive.join();
     // std::thread matchup(&Trader::matchup, this);
-
-    orderReceive.detach();
+    
     // matchup.detach();
 }

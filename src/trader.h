@@ -14,6 +14,7 @@
 
 #include "enumStorage.h"
 #include "server.h"
+#include "../funclib/logwriter.h"
 
 #define DELIMITER '|'
 
@@ -22,8 +23,13 @@
 class Order
 {
 public:
-    Order(std::string text, int stockNum);
+    Order();
     ~Order();
+    std::string nid; //網單編號
+    int volumn; //委託量
+    double orderPrice; //委託價
+    std::string symbol; //商品代號
+    std::string userID; //委託人帳號
     long getNid();
     void setNid();
     void setside(Side side);
@@ -104,7 +110,13 @@ public:
     int checkDataQueue();
     void startTransaction();
     Server *sr;
+    Order *od;
+    OrderData *odt;
+    Report *rpt;
+    RiskController *rc;
+    Logwriter *logwrite;
     bool dqstatus = false;
+    bool serverstatus = false;
 private:
     std::vector<Order*> buyside_;
     std::vector<Order*> sellside_;

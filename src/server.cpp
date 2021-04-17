@@ -9,7 +9,7 @@ logPath(logPath)
 	{
 		socketini();
 		std::thread connacpt(&Server::acceptConn,this);
-		connacpt.join();
+		connacpt.detach();
 	}
 }
 
@@ -145,18 +145,9 @@ void Server::msgRecv(Connection *cn)
 			}
 			logwrite->write(LogLevel::DEBUG, " Server Receive : " + subStr);
 			if(cn->getloginstatus())
-				msgHandler(subStr);
+				msgHandler(subStr + "|" + std::to_string(cn->getConnectionID()));
 			else
 				loginMsgHandle(subStr, cn);
-			
-			//dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID())); //測試用
-			if(cn->getloginstatus()&&subStr!="<3")
-				dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID()));
-			else
-			{
-				if(subStr != "<3")
-					cn->sendto("not log in");
-			}	
 		}
 		else
 		{
@@ -169,37 +160,26 @@ void Server::msgRecv(Connection *cn)
 
 void Server::msgHandler(std::string msg)
 {
-	if(msg == "<3")
+	if(msg.substr(0,2) == "<3")
 		return;
-	std::vector<std::string> res = split(msg, "|");
+	std::string codeNum = msg.substr(0, msg.find("|"));
 	try
 	{
-		switch(std::stoi(res[0]))
+		switch(std::stoi(codeNum))
 		{
 			case 87:
 				logwrite->write(LogLevel::DEBUG, "(Server) 下單處理");
-				od = new OrderData;
-				od->nid = res[1];
-				od->orderPrice = std::stod(res[2]);
-				od->symbol = "TXO";
-				od->userID = "0324027";
-
-				if(db->insertOrder(od))
-					logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
-				else
-					logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
+				dq->pushDTA(msg);
 				break;
 			default:
 				break;
 			
 		}
 	}
-	catch(const std::exception& e)
+	catch(...)
 	{
-		std::cerr << e.what() << '\n';
+		logwrite->write(LogLevel::DEBUG, "(Server) Handle Msg error ");
 	}
-	
-	
 }
 
 void Server::loginMsgHandle(std::string msg, Connection *cn)
@@ -213,8 +193,6 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 			if(userList.size()>0)
 			{
 				std::map<std::string, std::string>::iterator it = userList.find(res[1]);
-				std::cout<<it->second<<std::endl;
-				std::cout<<res[2]<<std::endl;
 				if(it->second == res[2])
 				{
 					logwrite->write(LogLevel::DEBUG, "(Server) login success");
@@ -231,6 +209,14 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 			std::cerr << e.what() << '\n';
 		}
 	}
+}
+
+void Server::insertOrderToDB(OrderData *od)
+{
+	if(db->insertOrder(od))
+		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
+	else
+		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
 }
 
 void Server::freeEmptysocket()

@@ -17,8 +17,6 @@ bool MariaDBHandler::initialise(std::string cfg)
     MY_PASSWORD = ip->iniContainer["password"].c_str();
     MY_DATABASE = ip->iniContainer["database"].c_str();
     MY_SOCKET = NULL;
-    std::cout<<MY_PASSWORD<<std::endl;
-    std::cout<<MY_DATABASE<<std::endl;
     try 
     {
         conn = mysql_init(NULL);
