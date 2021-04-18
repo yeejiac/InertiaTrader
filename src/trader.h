@@ -102,7 +102,7 @@ public:
     void setTraderStatus(bool status);
     bool getTraderStatus();
     void rawStrHandle(std::string rawStr);
-    void orderDataInsert(std::string str);
+    void orderDataInsert(Order *order);
     void matchup();
     void loadInitialise();
     void getOrder();

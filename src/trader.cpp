@@ -90,7 +90,9 @@ long Report::generateNid()
 
 Trader::Trader()
 {
-    //logwrite->write(LogLevel::DEBUG, "Virtual trader initialise");
+    logwrite = new Logwriter("SR", "./log/");
+    logwrite->write(LogLevel::DEBUG, "Virtual trader initialise");
+    setTraderStatus(true);
 }
 
 void Trader::setTraderStatus(bool status)
@@ -103,29 +105,35 @@ bool Trader::getTraderStatus()
     return traderstatus_;
 }
 
-void Trader::rawStrHandle(std::string rawStr)
-{
-    char strdelimiter = '&';
-    size_t pos = 0;
-    std::string token;
-    while ((pos = rawStr.find(strdelimiter)) != std::string::npos) 
-    {
-        token = rawStr.substr(0, pos);
-        std::cout << token << std::endl;
-        orderDataInsert(token);
-        rawStr.erase(0, pos + 1);
-    }
-    orderDataInsert(rawStr);
-}
+// void Trader::rawStrHandle(std::string rawStr)
+// {
+//     char strdelimiter = '&';
+//     size_t pos = 0;
+//     std::string token;
+//     while ((pos = rawStr.find(strdelimiter)) != std::string::npos) 
+//     {
+//         token = rawStr.substr(0, pos);
+//         std::cout << token << std::endl;
+//         orderDataInsert(token);
+//         rawStr.erase(0, pos + 1);
+//     }
+//     orderDataInsert(rawStr);
+// }
 
-void Trader::orderDataInsert(std::string str)
+void Trader::orderDataInsert(Order *order)
 {
     //New Order object and insert data
-    Order *order = new Order;
     if(order->getside() == Side::BUY)
+    {
         buyside_.push_back(order);
+        logwrite->write(LogLevel::DEBUG, "(Trader) Get Buyside Order");
+    }
     else
+    {
         sellside_.push_back(order);
+        logwrite->write(LogLevel::DEBUG, "(Trader) Get SellSide Order");
+    }
+        
 }
 
 // void Trader::matchup()
@@ -154,36 +162,34 @@ void Trader::orderDataInsert(std::string str)
 
 void Trader::getOrder()
 {
-    //logwrite->write(LogLevel::DEBUG, "(Trader) Get Order thread start");
-    std::cout<<"(Trader) Get Order thread start"<<std::endl;
-    std::unique_lock<std::mutex> lk1(cv_m);
-    cv_.wait(lk1, [this]{return sr->getconnStatus();});
+    logwrite->write(LogLevel::DEBUG, "(Trader) Get Order thread start");
+    // std::unique_lock<std::mutex> lk1(cv_m);
+    // cv_.wait(lk1, [this]{return sr->getconnStatus();});
     while(getTraderStatus())
     {
-        //logwrite->write(LogLevel::DEBUG, "(Trader) Wait Order insert");
-        std::cout<<"(Trader) Wait Order insert"<<std::endl;
         // std::unique_lock<std::mutex> lk2(cv_m);
         // cv_.wait(lk2, [this]{return sr->dq->checkSpace() != 0;});
-        //logwrite->write(LogLevel::DEBUG, "(Trader) Handle Order Msg");
         if(sr->dq->checkSpace()>0)
         {
-            std::cout<<"(Trader) Handle Order Msg"<<std::endl;
+            logwrite->write(LogLevel::DEBUG, "(Trader) Handle Order Msg");
             std::vector<std::string> res = split(sr->dq->popDTA(), "|");
             od = new Order;
             od->nid = res[1];
             od->orderPrice = std::stod(res[2]);
+            od->setside(Side(std::stoi(res[3])));
             od->symbol = "TXO";
             od->userID = "0324027";
-            std::cout<<od->userID<<std::endl;
             rc->verify(od);
             if(od->getStatus() == OrderStatus::VERIFIED)
             {
-                std::cout<<"(Trader) Input data to db"<<std::endl;
+                orderDataInsert(od);
+                logwrite->write(LogLevel::DEBUG, "(Trader) Input data to db");
                 odt = new OrderData;
                 odt->nid = od->nid;
-                odt->orderPrice =  od->orderPrice;
-                odt->symbol =  od->symbol;
-                odt->userID =  od->userID;
+                odt->orderPrice = od->orderPrice;
+                odt->symbol = od->symbol;
+                odt->userID = od->userID;
+                odt->side = static_cast<int>(od->getside());
                 sr->insertOrderToDB(odt);
             }
         }
@@ -217,11 +223,14 @@ void Trader::startTransaction()
     // 2. 收委託單並進行風控
     // 3. 發送回報資料(委託回報或成交回報)
     // 4. 媒合委託單
-    setTraderStatus(true);
     
     sr = new Server("./doc/settings.ini", "socket", "./log/");
-    std::thread orderReceive(&Trader::getOrder, this);
-    orderReceive.join();
+    if(sr->getconnStatus())
+    {
+        std::thread orderReceive(&Trader::getOrder, this);
+        orderReceive.join();
+    }
+    
     // std::thread matchup(&Trader::matchup, this);
     
     // matchup.detach();

@@ -31,7 +31,7 @@ class Server
 public:
 	Server(std::string initFilePath, std::string initchosen, std::string logPath);
 	~Server();
-	void socketini();
+	bool socketini();
 	void essentialData_initialise();
 	void acceptConn();
 	void msgRecv(Connection *cn);

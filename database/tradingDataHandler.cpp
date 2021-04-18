@@ -38,7 +38,7 @@ std::map<std::string, std::string> TradingDataHandler::getUserData()
         return result;
     }
     std::string sqlcommand = "select * from stock.User ;";
-    logwrite->write(LogLevel::ERROR, "(MariaDB) sql command : " + sqlcommand);
+    logwrite->write(LogLevel::DEBUG, "(MariaDB) sql command : " + sqlcommand);
 
     mysql_query(conn, sqlcommand.c_str());
     res = mysql_store_result(conn);
@@ -58,8 +58,8 @@ std::map<std::string, std::string> TradingDataHandler::getUserData()
 
 bool TradingDataHandler::insertOrder(OrderData *od)
 {
-    std::string value = od->nid + ","  + std::to_string(od->orderPrice) + "," +"'"+ od->symbol +"'" +"," + od->userID;
-    std::string query = "INSERT INTO `stock`.`Order` (`NID`, `OrderPrice`, `Symbol`, `UserID`) VALUES (" + value + ");";
+    std::string value = od->nid + ","  + std::to_string(od->orderPrice) + "," +"'"+ od->symbol +"'" +"," + od->userID + "," + std::to_string(od->side);
+    std::string query = "INSERT INTO `stock`.`Order` (`NID`, `OrderPrice`, `Symbol`, `UserID`, `Side`) VALUES (" + value + ");";
     std::cout<<query<<std::endl;
     if (mysql_query(conn, query.c_str()) != 0)                   
     {    

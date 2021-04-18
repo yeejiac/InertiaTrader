@@ -5,12 +5,13 @@ logPath(logPath)
 {
 	logwrite = new Logwriter("SR", logPath);
 	essentialData_initialise();
-	if(db->connstatus)
+	if(db->connstatus&&socketini())
 	{
-		socketini();
 		std::thread connacpt(&Server::acceptConn,this);
 		connacpt.detach();
 	}
+	else
+		setconnStatus(false);
 }
 
 Server::~Server()
@@ -29,18 +30,16 @@ bool Server::getconnStatus()
 	return connStatus_;
 }
 
-void Server::socketini()
+bool Server::socketini()
 {
 	std::unique_ptr<InitParser> ip(new InitParser(initFilePath, initchosen));
 	ip->readLine();
 	int port = std::stoi(ip->iniContainer["port"]);
-	std::cout<<port<<std::endl;
 	const char* addr = ip->iniContainer["addr"].c_str();
-	std::cout<<addr<<std::endl;
 	if( (listenfd_ = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
 	{
         printf("create socket error: %s(errno: %d)\n");
-        return;
+        return false;
     }
 	memset(&servaddr_, 0,sizeof(servaddr_));
 	servaddr_.sin_family = AF_INET;
@@ -49,17 +48,18 @@ void Server::socketini()
     if (bind( listenfd_, (struct sockaddr*)&servaddr_, sizeof(servaddr_)) == -1) 
 	{
 		logwrite->write(LogLevel::WARN, "bind failed with Error");
-        return;
+        return false;
     }
 
 	
     if (listen( listenfd_, SOMAXCONN) == -1) 
 	{
 		logwrite->write(LogLevel::WARN, "listen failed with Error: ");
-		return;
+		return false;
 	}
 	setconnStatus(true);
 	logwrite->write(LogLevel::DEBUG, "server socket init success");
+	return true;
 }
 
 void Server::essentialData_initialise()

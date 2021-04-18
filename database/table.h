@@ -7,6 +7,7 @@ struct OrderData
     double orderPrice; //委託價
     std::string symbol; //商品代號
     std::string userID; //委託人帳號
+    int side; //買賣別
 };
 
 struct ReportData

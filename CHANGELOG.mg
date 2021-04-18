@@ -37,3 +37,10 @@ Fixed
 
 **Bug wait for solved
 logwriter unable to work at class trader
+
+2021/4/18
+Fixed 
+*Logwriter working
+
+Added
+database column "side"
