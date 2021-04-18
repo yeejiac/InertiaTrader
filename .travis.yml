@@ -12,5 +12,6 @@ before_install:
   - docker build -t inertiatrader . --no-cache
 
 script:
+  - docker-compose up -d
   - docker run inertiatrader ./trader.out -- --coverage
   
