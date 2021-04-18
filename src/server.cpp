@@ -65,7 +65,10 @@ bool Server::socketini()
 void Server::essentialData_initialise()
 {
 	db = new TradingDataHandler("database");
-	userList = db->getUserData();
+	if(db->connstatus)
+		userList = db->getUserData();
+	else
+		logwrite->write(LogLevel::ERROR, "(Server) Connect to DB failed");
 }
 
 void Server::acceptConn()

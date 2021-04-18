@@ -8,7 +8,7 @@ TradingDataHandler::TradingDataHandler(std::string iniopt)
         i++;
         logwrite->write(LogLevel::ERROR, "(MariaDB) DB connect failed ");
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        if(i>10)
+        if(i>5)
             return;
         connstatus = false;
     }
