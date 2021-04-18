@@ -1,4 +1,0 @@
-FROM centos:7
-ENV container docker
-RUN yum install -y --setopt=tsflags=nodocs boost-devel && yum clean all -y
-COPY ./ ./
