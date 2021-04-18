@@ -10,9 +10,12 @@ before_install:
   - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
+  - docker build -t mydb .
   - docker build -t inertiatrader . --no-cache
 
 script:
-  - docker-compose up -d
-  - docker run inertiatrader ./trader.out -- --coverage
+  - docker run -d --rm --name mydb-container mydb
+  - docker logs mydb-container
+  - docker run -it --rm --link mydb-container mariadb:latest mysql -h mydb-container -uroot -proot myexample -e "select * from stock.User;"
+  # - docker run inertiatrader ./trader.out -- --coverage
   
