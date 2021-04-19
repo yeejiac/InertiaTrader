@@ -1,9 +1,11 @@
 version: "3"
 services:
   db:
-    image: mariadb
+    build: dockerfile.db
     restart: always
     ports:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: Aa1234
+  trader:
+    build: dockerfile
