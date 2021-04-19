@@ -88,7 +88,7 @@ long Report::generateNid()
 //     return reportTex;
 // }
 
-Trader::Trader()
+Trader::Trader(bool mode):testmode(mode)
 {
     logwrite = new Logwriter("SR", "./log/");
     logwrite->write(LogLevel::DEBUG, "Virtual trader initialise");
@@ -225,10 +225,12 @@ void Trader::startTransaction()
     // 4. 媒合委託單
     
     sr = new Server("./doc/settings.ini", "socket", "./log/");
-    if(sr->getconnStatus())
+    if(sr->getconnStatus()&&testmode == false)
     {
         std::thread orderReceive(&Trader::getOrder, this);
         orderReceive.join();
+        if(testmode)
+            logwrite->write(LogLevel::DEBUG, "(Trader) Test mode");
     }
     
     // std::thread matchup(&Trader::matchup, this);

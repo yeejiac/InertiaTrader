@@ -97,7 +97,7 @@ private:
 class Trader
 {
 public:
-    Trader();
+    Trader(bool mode);
     ~Trader();
     void setTraderStatus(bool status);
     bool getTraderStatus();
@@ -117,6 +117,7 @@ public:
     Logwriter *logwrite;
     bool dqstatus = false;
     bool serverstatus = false;
+    bool testmode;
 private:
     std::vector<Order*> buyside_;
     std::vector<Order*> sellside_;
