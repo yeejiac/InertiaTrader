@@ -7,5 +7,5 @@ RUN yum install mysql-devel -y
 RUN yum install make -y
 RUN ln -s /usr/lib64/libmysqlclient.so /usr/bin/libmysqlclient.so
 COPY . .
-RUN make main
+# RUN make main
 # RUN ./trader.out
