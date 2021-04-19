@@ -16,6 +16,6 @@ before_install:
 script:
   - docker run -d --rm --name mydb-container mydb
   - docker logs mydb-container
-  - docker run -p 3306:3306 --restart -it --rm --link mydb-container mariadb:latest mysql -h mydb-container -uroot -pAa1234 stock -e "select * from stock.User;"
+  - docker run -p 3306:3306 --restart -it --link mydb-container mariadb:latest mysql -h mydb-container -uroot -pAa1234 stock -e "select * from stock.User;"
   - docker run inertiatrader ./trader.out test -- --coverage
   
