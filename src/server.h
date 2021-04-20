@@ -36,13 +36,14 @@ public:
 	void acceptConn();
 	void msgRecv(Connection *cn);
 	void msgHandler(std::string msg);
-	void send(Connection *cn);
+	void sendToClient(int connNum, std::string msg);
 	void heartbeat(Connection *cn);
 	void setconnStatus(bool connStatus);
 	bool getconnStatus();
 	void freeEmptysocket();
 	void insertOrderToDB(OrderData *od);
 	void loginMsgHandle(std::string msg, Connection *cn);
+	void getConnObject(Connection *cn, int connNum);
 	Logwriter *logwrite;
 	OrderData *od;
 	DataQueue *dq = new DataQueue(10);

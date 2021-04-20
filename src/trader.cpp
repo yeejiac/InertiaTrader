@@ -60,33 +60,33 @@ long Report::generateNid()
     return key;
 }
 
-// std::string Report::composeReport()
-// {
-//     std::string reportTex = "";
-//     if(reportType_ == ReportType::NONE)
-//     {
-//         std::cout<<"lack of report type"<<std::endl;
-//     }
-//     else if(reportType_ == ReportType::OrderReport)
-//     {
-//         std::cout<<"OrderReport"<<std::endl;
-//         reportTex = "100|" + std::to_string(nid_) + '|' + orderNum_ + '|' + std::to_string(price_) + '|' + static_cast<Side>(side_) + 
-//                     '|' + static_cast<Market>(market_) + '|' + static_cast<OrderType>(ordertype_) + '|' + timeString_;
-//     }
-//     else if(reportType_ == ReportType::ExecutionReport)
-//     {
-//         std::cout<<"ExecutionReport"<<std::endl;
-//         reportTex = "102|" + std::to_string(nid_) + '|' + orderNum_ + '|' + std::to_string(price_) + '|' + static_cast<Side>(side_) + 
-//                     '|' + static_cast<Market>(market_) + '|' + static_cast<OrderType>(ordertype_) + '|' + timeString_;
-//     }
-//     else
-//     {
-//         std::cout<<"ErrorReport"<<std::endl;
-//         reportTex = "101|" + std::to_string(nid_) + '|' + orderNum_ + '|' + std::to_string(price_) + '|' + static_cast<Side>(side_) + 
-//                     '|' + static_cast<Market>(market_) + '|' + static_cast<OrderType>(ordertype_) + '|' + timeString_;
-//     }
-//     return reportTex;
-// }
+std::string Report::composeReport(Order *order)
+{
+    std::string reportTex = "";
+    if(reportType_ == ReportType::NONE)
+    {
+        std::cout<<"lack of report type"<<std::endl;
+    }
+    else if(reportType_ == ReportType::OrderReport)
+    {
+        std::cout<<"OrderReport"<<std::endl;
+        reportTex = "100|success" ;
+        // reportTex = "100|" + std::to_string(nid_) + '|' + orderNum_ + '|' + std::to_string(price_) + '|';
+    }
+    // else if(reportType_ == ReportType::ExecutionReport)
+    // {
+    //     std::cout<<"ExecutionReport"<<std::endl;
+    //     reportTex = "102|" + std::to_string(nid_) + '|' + orderNum_ + '|' + std::to_string(price_) + '|' + static_cast<Side>(side_) + 
+    //                 '|' + static_cast<Market>(market_) + '|' + static_cast<OrderType>(ordertype_) + '|' + timeString_;
+    // }
+    else
+    {
+        std::cout<<"ErrorReport"<<std::endl;
+        reportTex = "100|failed" ;
+        // reportTex = "101|" + std::to_string(nid_) + '|' + orderNum_ + '|' + std::to_string(price_) + '|';
+    }
+    return reportTex;
+}
 
 Trader::Trader(bool mode):testmode(mode)
 {
@@ -182,6 +182,7 @@ void Trader::getOrder()
             rc->verify(od);
             if(od->getStatus() == OrderStatus::VERIFIED)
             {
+                sr->sendToClient(std::stoi(res[6]), res[1] + "|success");
                 orderDataInsert(od);
                 logwrite->write(LogLevel::DEBUG, "(Trader) Input data to db");
                 odt = new OrderData;

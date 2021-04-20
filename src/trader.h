@@ -53,9 +53,9 @@ private:
 class Report
 {
 public:
-    Report(Order *order);
+    Report();
     void setReportType(ReportType rpt);
-    std::string composeReport();
+    std::string composeReport(Order *order);
     long generateNid();
 private:
     int stockNum_;

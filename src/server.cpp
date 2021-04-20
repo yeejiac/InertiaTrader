@@ -238,6 +238,11 @@ void Server::freeEmptysocket()
 	}
 }
 
+void Server::sendToClient(int connNum, std::string msg)
+{
+	connStorage_[connNum]->sendto(msg);
+}
+
 // int main()
 // {
 // 	Server *sr = new Server;
