@@ -20,6 +20,7 @@
 
 #define buffer 1024
 
+
 class Connection
 {
 public:

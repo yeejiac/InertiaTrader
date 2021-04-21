@@ -47,6 +47,11 @@ Side Order::getside()
     return side_;
 }
 
+double Order::getPrice()
+{
+    return price_;
+}
+
 void Report::setReportType(ReportType rpt)
 {
     reportType_ = rpt;
@@ -136,29 +141,31 @@ void Trader::orderDataInsert(Order *order)
         
 }
 
-// void Trader::matchup()
-// {
-//     while(getTraderStatus())
-//     {
-//         for(auto b = buyside_.begin(); b != buyside_.end();) 
-//         {
-//             for(auto s = sellside_.begin(); s != sellside_.end();) 
-//             {
-//                 if(*b->getPrice() == *s->getPrice())
-//                 {
-//                     Report *report_buy = new Report(&b);
-//                     Report *report_sell = new Report(&s);
-//                     b = buyside_.erase(b);
-//                     s = sellside_.erase(s);
-//                 }
-//                 else
-//                     ++s;
-//             }
-//             ++b;
-//         }
-//         std::this_thread::sleep_for(std::chrono::seconds(10)); //十秒撮合一次
-//     }
-// }
+void Trader::matchup()
+{
+    logwrite->write(LogLevel::DEBUG, "(Trader) Match up thread start");
+    std::unique_lock<std::mutex> lk1(cv_m);
+    cv_.wait(lk1, [this]{return sr->getconnStatus();});
+    while(getTraderStatus())
+    {
+        logwrite->write(LogLevel::DEBUG, "(Trader) Do Match up process");
+        for(int i = 0; i <buyside_.size();i++) 
+        {
+            for(int j = 0; j <sellside_.size();j++) 
+            {
+                if(buyside_[i]->getPrice() == sellside_[j]->getPrice())
+                {
+                    // Report *report_buy = new Report(&b);
+                    // Report *report_sell = new Report(&s);
+                    buyside_.erase(buyside_.begin() + i);
+                    sellside_.erase(sellside_.begin() + j);
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
+                }
+            }
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(10)); //十秒撮合一次
+    }
+}
 
 void Trader::getOrder()
 {
@@ -229,12 +236,14 @@ void Trader::startTransaction()
     if(sr->getconnStatus()&&testmode == false)
     {
         std::thread orderReceive(&Trader::getOrder, this);
+        std::thread matchup(&Trader::matchup, this);
+        matchup.detach();
         orderReceive.join();
         if(testmode)
             logwrite->write(LogLevel::DEBUG, "(Trader) Test mode");
     }
     
-    // std::thread matchup(&Trader::matchup, this);
     
-    // matchup.detach();
+    
+    
 }
