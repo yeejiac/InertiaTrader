@@ -138,7 +138,7 @@ void Trader::orderDataInsert(Order *order)
         sellside_.push_back(order);
         logwrite->write(LogLevel::DEBUG, "(Trader) Get SellSide Order");
     }
-        
+    cv_m.unlock();    
 }
 
 void Trader::matchup()
@@ -148,6 +148,7 @@ void Trader::matchup()
     cv_.wait(lk1, [this]{return sr->getconnStatus();});
     while(getTraderStatus())
     {
+        cv_m.lock();
         logwrite->write(LogLevel::DEBUG, "(Trader) Do Match up process");
         for(int i = 0; i <buyside_.size();i++) 
         {
@@ -155,11 +156,12 @@ void Trader::matchup()
             {
                 if(buyside_[i]->getPrice() == sellside_[j]->getPrice())
                 {
-                    // Report *report_buy = new Report(&b);
-                    // Report *report_sell = new Report(&s);
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
+                    sendExecReport(buyside_[i]);
+                    sendExecReport(sellside_[j]);
                     buyside_.erase(buyside_.begin() + i);
                     sellside_.erase(sellside_.begin() + j);
-                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
+                    
                 }
             }
         }
@@ -186,6 +188,7 @@ void Trader::getOrder()
             od->setside(Side(std::stoi(res[3])));
             od->symbol = "TXO";
             od->userID = "0324027";
+            od->connId = std::stoi(res[6]);
             rc->verify(od);
             if(od->getStatus() == OrderStatus::VERIFIED)
             {
@@ -209,20 +212,10 @@ void Trader::getOrder()
     }
 }
 
-// void Trader::sendReport()
-// {
-//     while(getTraderStatus())
-//     {
-//         std::unique_lock<std::mutex> lk(cv_m);
-//         cv_.wait_for(lk, 1, [&]{return reportList_.size() > 0;});
-//         for(int i = 0; i<reportList_.size();i++)
-//         {
-//             std::string str = reportList_[i]->composeReport();
-//             //需要修改socket class來識別每一個連線的ID，才能根據每個ID來取得Connection 物件
-//             sr->getConnectionObject(0)->sendto(str);
-//         }
-//     }
-// }
+void Trader::sendExecReport(Order *order)
+{
+    sr->sendToClient(order->connId, order->nid + "|OrderExec");
+}
 
 void Trader::startTransaction()
 {
@@ -238,10 +231,10 @@ void Trader::startTransaction()
         std::thread orderReceive(&Trader::getOrder, this);
         std::thread matchup(&Trader::matchup, this);
         matchup.detach();
-        orderReceive.join();
-        if(testmode)
-            logwrite->write(LogLevel::DEBUG, "(Trader) Test mode");
+        orderReceive.detach();
     }
+    std::unique_lock<std::mutex> lk1(cv_m);
+    cv_.wait(lk1, [this]{return serverstatus;});
     
     
     

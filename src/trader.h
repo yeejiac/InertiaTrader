@@ -36,9 +36,9 @@ public:
     Side getside();
     void setPrice();
     double getPrice();
-
     void setStatus(OrderStatus status);
     OrderStatus getStatus();
+    int connId;
 private:
     int stockNum_;
     long nid_;
@@ -106,7 +106,7 @@ public:
     void matchup();
     void loadInitialise();
     void getOrder();
-    void sendReport();
+    void sendExecReport(Order *order);
     int checkDataQueue();
     void startTransaction();
     Server *sr;

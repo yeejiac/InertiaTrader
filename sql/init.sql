@@ -16,6 +16,18 @@
 CREATE DATABASE IF NOT EXISTS `stock` /*!40100 DEFAULT CHARACTER SET latin1 */;
 USE `stock`;
 
+-- 傾印  資料表 stock.ExecReport 結構
+CREATE TABLE IF NOT EXISTS `ExecReport` (
+  `NID` float NOT NULL,
+  `ExecPrice` double(22,0) NOT NULL,
+  `Side` int(1) NOT NULL,
+  PRIMARY KEY (`NID`,`Side`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- 正在傾印表格  stock.ExecReport 的資料：~0 rows (近似值)
+/*!40000 ALTER TABLE `ExecReport` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ExecReport` ENABLE KEYS */;
+
 -- 傾印  資料表 stock.Order 結構
 CREATE TABLE IF NOT EXISTS `Order` (
   `NID` float NOT NULL DEFAULT '0',
