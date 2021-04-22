@@ -233,6 +233,11 @@ void Trader::startTransaction()
         matchup.detach();
         orderReceive.detach();
     }
+    else
+    {
+        serverstatus = true;
+    }
+
     std::unique_lock<std::mutex> lk1(cv_m);
     cv_.wait(lk1, [this]{return serverstatus;});
     
