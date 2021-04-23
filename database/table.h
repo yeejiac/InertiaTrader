@@ -19,6 +19,7 @@ struct ReportData
     int execVolumn; //成交量
     std::string symbol; //商品代號
     std::string userID; //委託人帳號
+    int side; //買賣別
 };
 
 struct UserData

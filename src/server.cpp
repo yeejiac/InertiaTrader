@@ -222,6 +222,14 @@ void Server::insertOrderToDB(OrderData *od)
 		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
 }
 
+void Server::insertReportToDB(std::string nid, std::string orderPrice, std::string side)
+{
+	if(db->insertReport(nid, orderPrice, side))
+		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
+	else
+		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
+}
+
 void Server::freeEmptysocket()
 {
 	std::map<int, Connection*>::iterator it;

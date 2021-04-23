@@ -161,7 +161,6 @@ void Trader::matchup()
                     sendExecReport(sellside_[j]);
                     buyside_.erase(buyside_.begin() + i);
                     sellside_.erase(sellside_.begin() + j);
-                    
                 }
             }
         }
@@ -215,6 +214,7 @@ void Trader::getOrder()
 void Trader::sendExecReport(Order *order)
 {
     sr->sendToClient(order->connId, order->nid + "|OrderExec");
+    sr->insertReportToDB(order->nid, std::to_string(order->orderPrice), std::to_string(static_cast<int>(od->getside())));
 }
 
 void Trader::startTransaction()

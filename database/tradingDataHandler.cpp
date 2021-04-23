@@ -69,7 +69,24 @@ bool TradingDataHandler::insertOrder(OrderData *od)
         return false;                                                                  
     }
     else
-        logwrite->write(LogLevel::DEBUG, "(MariaDB) Insert Success");
+        logwrite->write(LogLevel::DEBUG, "(MariaDB) Insert Order Success");
+        return true;
+}
+
+bool TradingDataHandler::insertReport(std::string nid, std::string orderPrice, std::string side)
+{
+    std::string value = nid + ","  + orderPrice +  "," + side;
+    std::string query = "INSERT INTO `stock`.`ExecReport` (`NID`, `ExecPrice`, `Side`) VALUES (" + value + ");";
+    std::cout<<query<<std::endl;
+    if (mysql_query(conn, query.c_str()) != 0)                   
+    {    
+        // fprintf(stderr, "%s\n", mysql_error(conn));     
+        std::string msg(mysql_error(conn));                                                                                                                                                   
+        logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure " + msg);        
+        return false;                                                                  
+    }
+    else
+        logwrite->write(LogLevel::DEBUG, "(MariaDB) Insert Report Success");
         return true;
 }
 
@@ -77,5 +94,4 @@ bool TradingDataHandler::insertOrder(OrderData *od)
 // {
 //     TradingDataHandler *db = new TradingDataHandler("database");
 //     std::cout<<db->getUserData("0324027")<<std::endl;
-    
 // }
