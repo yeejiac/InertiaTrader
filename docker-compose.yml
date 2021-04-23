@@ -1,11 +1,13 @@
 version: "3"
 services:
-  db:
-    build: dockerfile.db
-    restart: always
+  ngrok:
+    image: shkoliar/ngrok:latest
     ports:
-      - "3306:3306"
+      - 1200:1200
+    links:
+      - web
     environment:
-      MYSQL_ROOT_PASSWORD: Aa1234
-  trader:
-    build: dockerfile
+      - PARAMS=http -region=eu localdev.docker:80
+    networks:
+      dev_net:
+        ipv4_address: 10.5.0.10

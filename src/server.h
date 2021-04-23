@@ -29,7 +29,7 @@
 class Server
 {
 public:
-	Server(std::string initFilePath, std::string initchosen, std::string logPath);
+	Server(std::string initFilePath, std::string initchosen, std::string logPath, bool mode);
 	~Server();
 	bool socketini();
 	void essentialData_initialise();
@@ -60,6 +60,7 @@ private:
 	char buffer_[buffer];
 	int recvbuflen_ = buffer;
 	bool connStatus_;
+	bool mode_;
 	std::mutex mutex_;
 	std::condition_variable st_;
     std::condition_variable conncv_;

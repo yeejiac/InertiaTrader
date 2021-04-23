@@ -1,7 +1,7 @@
 #include "server.h"
 
-Server::Server(std::string initFilePath, std::string initchosen, std::string logPath):initFilePath(initFilePath),initchosen(initchosen),
-logPath(logPath)
+Server::Server(std::string initFilePath, std::string initchosen, std::string logPath, bool mode):initFilePath(initFilePath),
+initchosen(initchosen), mode_(mode),logPath(logPath)
 {
 	logwrite = new Logwriter("SR", logPath);
 	essentialData_initialise();
@@ -64,7 +64,7 @@ bool Server::socketini()
 
 void Server::essentialData_initialise()
 {
-	db = new TradingDataHandler("database");
+	db = new TradingDataHandler(mode_?"Testdatabase":"database");
 	if(db->connstatus)
 		userList = db->getUserData();
 	else

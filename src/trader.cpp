@@ -225,7 +225,7 @@ void Trader::startTransaction()
     // 3. 發送回報資料(委託回報或成交回報)
     // 4. 媒合委託單
     
-    sr = new Server("./doc/settings.ini", "socket", "./log/");
+    sr = new Server("./doc/settings.ini", "socket", "./log/", testmode);
     if(sr->getconnStatus()&&testmode == false)
     {
         std::thread orderReceive(&Trader::getOrder, this);
