@@ -199,6 +199,7 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 				if(it->second == res[2])
 				{
 					logwrite->write(LogLevel::DEBUG, "(Server) login success");
+					cn->sendto(std::to_string(rand()%1000));
 					cn->setloginFlag(true);
 				}	
 			}
