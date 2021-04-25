@@ -56,6 +56,30 @@ std::map<std::string, std::string> TradingDataHandler::getUserData()
     return result;
 }
 
+ std::vector<std::string> TradingDataHandler::getTradingData()
+ {
+    std::vector<std::string> result;
+    if(!conn)
+    {
+        logwrite->write(LogLevel::ERROR, "(MariaDB) DB connect failed ");
+        return result;
+    }
+    std::string sqlcommand = "SELECT * FROM stock.InitData ORDER BY ID DESC LIMIT 1;";
+    logwrite->write(LogLevel::DEBUG, "(MariaDB) sql command : " + sqlcommand);
+    mysql_query(conn, sqlcommand.c_str());
+    res = mysql_store_result(conn);
+    int num_fields = mysql_num_fields(res);
+    while ((row = mysql_fetch_row(res))) 
+    {
+        for(int i = 0 ; i<num_fields;i++)
+        {
+            result.push_back(row[i]);
+        }
+    }
+    mysql_free_result(res);
+    return result;
+ }
+
 bool TradingDataHandler::insertOrder(OrderData *od)
 {
     std::string value = od->nid + ","  + std::to_string(od->orderPrice) + "," +"'"+ od->symbol +"'" +"," + od->userID + "," + std::to_string(od->side);

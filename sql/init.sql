@@ -28,6 +28,22 @@ CREATE TABLE IF NOT EXISTS `ExecReport` (
 /*!40000 ALTER TABLE `ExecReport` DISABLE KEYS */;
 /*!40000 ALTER TABLE `ExecReport` ENABLE KEYS */;
 
+-- 傾印  資料表 stock.InitData 結構
+CREATE TABLE IF NOT EXISTS `InitData` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `Date` varchar(50) NOT NULL DEFAULT '0' COMMENT '日期',
+  `Price_Now` double(22,0) NOT NULL DEFAULT '0' COMMENT '現價',
+  `Price_Start` double NOT NULL COMMENT '開盤價',
+  `Price_End` double NOT NULL COMMENT '收盤價',
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+
+-- 正在傾印表格  stock.InitData 的資料：~1 rows (近似值)
+/*!40000 ALTER TABLE `InitData` DISABLE KEYS */;
+INSERT INTO `InitData` (`ID`, `Date`, `Price_Now`, `Price_Start`, `Price_End`) VALUES
+	(1, '20210425', 60, 60.5, 60.5);
+/*!40000 ALTER TABLE `InitData` ENABLE KEYS */;
+
 -- 傾印  資料表 stock.Order 結構
 CREATE TABLE IF NOT EXISTS `Order` (
   `NID` float NOT NULL DEFAULT '0',
@@ -49,7 +65,7 @@ CREATE TABLE IF NOT EXISTS `User` (
   PRIMARY KEY (`user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- 正在傾印表格  stock.User 的資料：~0 rows (近似值)
+-- 正在傾印表格  stock.User 的資料：~1 rows (近似值)
 /*!40000 ALTER TABLE `User` DISABLE KEYS */;
 INSERT INTO `User` (`user`, `password`) VALUES
 	('0324027', '123');

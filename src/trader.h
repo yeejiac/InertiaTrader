@@ -15,10 +15,9 @@
 #include "enumStorage.h"
 #include "server.h"
 #include "../funclib/logwriter.h"
+#include "../database/tradingDataHandler.h"
 
 #define DELIMITER '|'
-
-// Logwriter *logwrite;
 
 class Order
 {
@@ -99,6 +98,7 @@ class Trader
 public:
     Trader(bool mode);
     ~Trader();
+    void essentialData_initialise();
     void setTraderStatus(bool status);
     bool getTraderStatus();
     void rawStrHandle(std::string rawStr);
@@ -115,6 +115,7 @@ public:
     Report *rpt;
     RiskController *rc;
     Logwriter *logwrite;
+    TradingDataHandler *db;
     bool dqstatus = false;
     bool serverstatus = false;
     bool testmode;
@@ -123,6 +124,7 @@ private:
     std::vector<Order*> sellside_;
     std::vector<Report*> reportList_;
     std::map<std::string, Stock*> stockList_;
+    std::vector<std::string> tradeBasicData_;
     bool traderstatus_;
     std::condition_variable cv_;
     std::mutex cv_m;

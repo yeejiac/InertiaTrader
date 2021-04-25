@@ -2,18 +2,17 @@
 
 RiskController::RiskController(){}
 
-void RiskController::verify(Order *order, double priceNow = 60)
+void RiskController::verify(Order *order, double priceNow)
 {
     //委託單基本風控
-    order->setStatus(OrderStatus::VERIFIED);
-    // if(order->orderPrice>priceNow*1.1||order->orderPrice<priceNow*0.9) //委託價檢核
-    // {
-    //     order->setStatus(OrderStatus::VERIFIED);
-    // }
-    // else
-    // {
-    //     order->setStatus(OrderStatus::FAILED);
-    // }
+    if(order->orderPrice>priceNow*1.1||order->orderPrice<priceNow*0.9) //委託價檢核
+    {
+        order->setStatus(OrderStatus::FAILED);
+    }
+    else
+    {
+        order->setStatus(OrderStatus::VERIFIED);
+    }
     // Report *rpt = new Report(order);
 }
 
@@ -95,8 +94,9 @@ std::string Report::composeReport(Order *order)
 
 Trader::Trader(bool mode):testmode(mode)
 {
-    logwrite = new Logwriter("SR", "./log/");
+    logwrite = new Logwriter("TD", "./log/");
     logwrite->write(LogLevel::DEBUG, "Virtual trader initialise");
+    essentialData_initialise();
     setTraderStatus(true);
 }
 
@@ -108,6 +108,17 @@ void Trader::setTraderStatus(bool status)
 bool Trader::getTraderStatus()
 {
     return traderstatus_;
+}
+
+void Trader::essentialData_initialise()
+{
+    db = new TradingDataHandler(testmode?"Testdatabase":"database");
+	if(db->connstatus)
+    {
+        tradeBasicData_ = db->getTradingData();
+    }
+	else
+		logwrite->write(LogLevel::ERROR, "(Trader) Initial failed");
 }
 
 // void Trader::rawStrHandle(std::string rawStr)
@@ -188,7 +199,7 @@ void Trader::getOrder()
             od->symbol = "TXO";
             od->userID = "0324027";
             od->connId = std::stoi(res[6]);
-            rc->verify(od);
+            rc->verify(od, std::stod(tradeBasicData_[2]));
             if(od->getStatus() == OrderStatus::VERIFIED)
             {
                 sr->sendToClient(std::stoi(res[6]), res[1] + "|success");
@@ -201,6 +212,11 @@ void Trader::getOrder()
                 odt->userID = od->userID;
                 odt->side = static_cast<int>(od->getside());
                 sr->insertOrderToDB(odt);
+            }
+            else
+            {
+                logwrite->write(LogLevel::DEBUG, "(Trader) Send Error report");
+                sr->sendToClient(std::stoi(res[6]), res[1] + "|failed");
             }
         }
         else

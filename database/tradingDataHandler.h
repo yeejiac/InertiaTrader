@@ -13,6 +13,7 @@ public:
     TradingDataHandler(std::string iniopt);
     ~TradingDataHandler();
     std::map<std::string, std::string> getUserData();
+    std::vector<std::string> getTradingData();
     bool insertOrder(OrderData *od);
     bool insertReport(std::string nid, std::string orderPrice, std::string side);
     unsigned char* md5(std::string plaintext);
