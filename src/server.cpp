@@ -148,7 +148,7 @@ void Server::msgRecv(Connection *cn)
 			}
 			logwrite->write(LogLevel::DEBUG, " Server Receive : " + subStr);
 			if(cn->getloginstatus())
-				msgHandler(subStr + "|" + std::to_string(cn->getConnectionID()));
+				msgHandler(subStr + "|" + std::to_string(cn->getConnectionID()) + "|");
 			else
 				loginMsgHandle(subStr, cn);
 		}

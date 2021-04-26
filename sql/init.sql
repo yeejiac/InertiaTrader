@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `InitData` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 
--- 正在傾印表格  stock.InitData 的資料：~1 rows (近似值)
+-- 正在傾印表格  stock.InitData 的資料：~0 rows (近似值)
 /*!40000 ALTER TABLE `InitData` DISABLE KEYS */;
 INSERT INTO `InitData` (`ID`, `Date`, `Price_Now`, `Price_Start`, `Price_End`) VALUES
 	(1, '20210425', 60, 60.5, 60.5);
@@ -58,6 +58,20 @@ CREATE TABLE IF NOT EXISTS `Order` (
 /*!40000 ALTER TABLE `Order` DISABLE KEYS */;
 /*!40000 ALTER TABLE `Order` ENABLE KEYS */;
 
+-- 傾印  資料表 stock.ProductList 結構
+CREATE TABLE IF NOT EXISTS `ProductList` (
+  `product_id` varchar(50) NOT NULL,
+  `transaction_flag` enum('Y','N') NOT NULL,
+  `note` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- 正在傾印表格  stock.ProductList 的資料：~0 rows (近似值)
+/*!40000 ALTER TABLE `ProductList` DISABLE KEYS */;
+INSERT INTO `ProductList` (`product_id`, `transaction_flag`, `note`) VALUES
+	('KKC', 'Y', 'kow kow coin');
+/*!40000 ALTER TABLE `ProductList` ENABLE KEYS */;
+
 -- 傾印  資料表 stock.User 結構
 CREATE TABLE IF NOT EXISTS `User` (
   `user` varchar(50) NOT NULL,
@@ -65,7 +79,7 @@ CREATE TABLE IF NOT EXISTS `User` (
   PRIMARY KEY (`user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- 正在傾印表格  stock.User 的資料：~1 rows (近似值)
+-- 正在傾印表格  stock.User 的資料：~0 rows (近似值)
 /*!40000 ALTER TABLE `User` DISABLE KEYS */;
 INSERT INTO `User` (`user`, `password`) VALUES
 	('0324027', '123');

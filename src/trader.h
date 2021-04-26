@@ -123,7 +123,7 @@ private:
     std::vector<Order*> buyside_;
     std::vector<Order*> sellside_;
     std::vector<Report*> reportList_;
-    std::map<std::string, Stock*> stockList_;
+    std::vector<std::string> productList_;
     std::vector<std::string> tradeBasicData_;
     bool traderstatus_;
     std::condition_variable cv_;

@@ -56,8 +56,8 @@ std::map<std::string, std::string> TradingDataHandler::getUserData()
     return result;
 }
 
- std::vector<std::string> TradingDataHandler::getTradingData()
- {
+std::vector<std::string> TradingDataHandler::getTradingData()
+{
     std::vector<std::string> result;
     if(!conn)
     {
@@ -78,7 +78,31 @@ std::map<std::string, std::string> TradingDataHandler::getUserData()
     }
     mysql_free_result(res);
     return result;
- }
+}
+
+std::vector<std::string> TradingDataHandler::getProductList()
+{
+    std::vector<std::string> result;
+    if(!conn)
+    {
+        logwrite->write(LogLevel::ERROR, "(MariaDB) DB connect failed ");
+        return result;
+    }
+    std::string sqlcommand = "SELECT `product_id` FROM stock.ProductList ;";
+    logwrite->write(LogLevel::DEBUG, "(MariaDB) sql command : " + sqlcommand);
+    mysql_query(conn, sqlcommand.c_str());
+    res = mysql_store_result(conn);
+    int num_fields = mysql_num_fields(res);
+    while ((row = mysql_fetch_row(res))) 
+    {
+        for(int i = 0 ; i<num_fields;i++)
+        {
+            result.push_back(row[i]);
+        }
+    }
+    mysql_free_result(res);
+    return result;
+}
 
 bool TradingDataHandler::insertOrder(OrderData *od)
 {

@@ -116,6 +116,7 @@ void Trader::essentialData_initialise()
 	if(db->connstatus)
     {
         tradeBasicData_ = db->getTradingData();
+        productList_ = db->getProductList();
     }
 	else
 		logwrite->write(LogLevel::ERROR, "(Trader) Initial failed");
@@ -196,11 +197,12 @@ void Trader::getOrder()
             od->nid = res[1];
             od->orderPrice = std::stod(res[2]);
             od->setside(Side(std::stoi(res[3])));
-            od->symbol = "TXO";
+            od->symbol = res[6];
             od->userID = "0324027";
-            od->connId = std::stoi(res[6]);
+            od->connId = std::stoi(res[8]);
             rc->verify(od, std::stod(tradeBasicData_[2]));
-            if(od->getStatus() == OrderStatus::VERIFIED)
+            std::vector<std::string>::iterator it = std::find(productList_.begin(), productList_.end(), od->symbol);
+            if(od->getStatus() == OrderStatus::VERIFIED && it !=productList_.end() )
             {
                 sr->sendToClient(std::stoi(res[6]), res[1] + "|success");
                 orderDataInsert(od);
