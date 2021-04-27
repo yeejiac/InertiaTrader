@@ -21,7 +21,6 @@
 #include "../funclib/logwriter.h"
 #include "../funclib/simplefunc.h"
 #include "../database/tradingDataHandler.h"
-
 #include "connection.h"
 
 
@@ -30,19 +29,22 @@
 class Server
 {
 public:
-	Server(std::string initFilePath, std::string initchosen, std::string logPath);
+	Server(std::string initFilePath, std::string initchosen, std::string logPath, bool mode);
 	~Server();
-	void socketini();
+	bool socketini();
 	void essentialData_initialise();
 	void acceptConn();
 	void msgRecv(Connection *cn);
 	void msgHandler(std::string msg);
-	void send(Connection *cn);
+	void sendToClient(int connNum, std::string msg);
 	void heartbeat(Connection *cn);
 	void setconnStatus(bool connStatus);
 	bool getconnStatus();
 	void freeEmptysocket();
+	void insertOrderToDB(OrderData *od);
+	void insertReportToDB(std::string nid, std::string orderPrice, std::string side);
 	void loginMsgHandle(std::string msg, Connection *cn);
+	void getConnObject(Connection *cn, int connNum);
 	Logwriter *logwrite;
 	OrderData *od;
 	DataQueue *dq = new DataQueue(10);
@@ -59,6 +61,7 @@ private:
 	char buffer_[buffer];
 	int recvbuflen_ = buffer;
 	bool connStatus_;
+	bool mode_;
 	std::mutex mutex_;
 	std::condition_variable st_;
     std::condition_variable conncv_;

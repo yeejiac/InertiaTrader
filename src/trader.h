@@ -14,25 +14,30 @@
 
 #include "enumStorage.h"
 #include "server.h"
+#include "../funclib/logwriter.h"
+#include "../database/tradingDataHandler.h"
 
 #define DELIMITER '|'
-
-// Logwriter *logwrite;
 
 class Order
 {
 public:
-    Order(std::string text, int stockNum);
+    Order();
     ~Order();
+    std::string nid; //網單編號
+    int volumn; //委託量
+    double orderPrice; //委託價
+    std::string symbol; //商品代號
+    std::string userID; //委託人帳號
     long getNid();
     void setNid();
     void setside(Side side);
     Side getside();
     void setPrice();
     double getPrice();
-
     void setStatus(OrderStatus status);
     OrderStatus getStatus();
+    int connId;
 private:
     int stockNum_;
     long nid_;
@@ -47,9 +52,9 @@ private:
 class Report
 {
 public:
-    Report(Order *order);
+    Report();
     void setReportType(ReportType rpt);
-    std::string composeReport();
+    std::string composeReport(Order *order);
     long generateNid();
 private:
     int stockNum_;
@@ -91,25 +96,35 @@ private:
 class Trader
 {
 public:
-    Trader();
+    Trader(bool mode);
     ~Trader();
+    void essentialData_initialise();
     void setTraderStatus(bool status);
     bool getTraderStatus();
     void rawStrHandle(std::string rawStr);
-    void orderDataInsert(std::string str);
+    void orderDataInsert(Order *order);
     void matchup();
     void loadInitialise();
     void getOrder();
-    void sendReport();
+    void sendExecReport(Order *order);
     int checkDataQueue();
     void startTransaction();
     Server *sr;
+    Order *od;
+    OrderData *odt;
+    Report *rpt;
+    RiskController *rc;
+    Logwriter *logwrite;
+    TradingDataHandler *db;
     bool dqstatus = false;
+    bool serverstatus = false;
+    bool testmode;
 private:
     std::vector<Order*> buyside_;
     std::vector<Order*> sellside_;
     std::vector<Report*> reportList_;
-    std::map<std::string, Stock*> stockList_;
+    std::vector<std::string> productList_;
+    std::vector<std::string> tradeBasicData_;
     bool traderstatus_;
     std::condition_variable cv_;
     std::mutex cv_m;

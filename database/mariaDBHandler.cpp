@@ -9,7 +9,7 @@ MariaDBHandler::~MariaDBHandler()
 
 bool MariaDBHandler::initialise(std::string cfg)
 {
-    std::unique_ptr<InitParser> ip(new InitParser("./doc/settings.ini", "database"));
+    std::unique_ptr<InitParser> ip(new InitParser("./doc/settings.ini", cfg));
     ip->readLine();
     MY_HOSTNAME = ip->iniContainer["addr"].c_str();
     MY_PORT = 3306;
@@ -17,8 +17,6 @@ bool MariaDBHandler::initialise(std::string cfg)
     MY_PASSWORD = ip->iniContainer["password"].c_str();
     MY_DATABASE = ip->iniContainer["database"].c_str();
     MY_SOCKET = NULL;
-    std::cout<<MY_PASSWORD<<std::endl;
-    std::cout<<MY_DATABASE<<std::endl;
     try 
     {
         conn = mysql_init(NULL);

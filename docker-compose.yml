@@ -1,13 +1,6 @@
-version: "3"
-services:
-  web:
-    build: .
-    ports:
-      - "5000:5000"
-    volumes:
-      - .:/funlib
-      - .:/lib
-    environment:
-      FLASK_ENV: development
-  redis:
-    image: "redis:alpine"
+ngrok:
+  image: shkoliar/ngrok:latest
+  ports:
+    - 4551:4551
+  environment:
+    - PORT=1200

@@ -1,16 +1,17 @@
 #include "server.h"
 
-Server::Server(std::string initFilePath, std::string initchosen, std::string logPath):initFilePath(initFilePath),initchosen(initchosen),
-logPath(logPath)
+Server::Server(std::string initFilePath, std::string initchosen, std::string logPath, bool mode):initFilePath(initFilePath),
+initchosen(initchosen), mode_(mode),logPath(logPath)
 {
 	logwrite = new Logwriter("SR", logPath);
 	essentialData_initialise();
-	if(db->connstatus)
+	if(db->connstatus&&socketini())
 	{
-		socketini();
 		std::thread connacpt(&Server::acceptConn,this);
-		connacpt.join();
+		connacpt.detach();
 	}
+	else
+		setconnStatus(false);
 }
 
 Server::~Server()
@@ -29,18 +30,16 @@ bool Server::getconnStatus()
 	return connStatus_;
 }
 
-void Server::socketini()
+bool Server::socketini()
 {
 	std::unique_ptr<InitParser> ip(new InitParser(initFilePath, initchosen));
 	ip->readLine();
 	int port = std::stoi(ip->iniContainer["port"]);
-	std::cout<<port<<std::endl;
 	const char* addr = ip->iniContainer["addr"].c_str();
-	std::cout<<addr<<std::endl;
 	if( (listenfd_ = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
 	{
         printf("create socket error: %s(errno: %d)\n");
-        return;
+        return false;
     }
 	memset(&servaddr_, 0,sizeof(servaddr_));
 	servaddr_.sin_family = AF_INET;
@@ -49,23 +48,27 @@ void Server::socketini()
     if (bind( listenfd_, (struct sockaddr*)&servaddr_, sizeof(servaddr_)) == -1) 
 	{
 		logwrite->write(LogLevel::WARN, "bind failed with Error");
-        return;
+        return false;
     }
 
 	
     if (listen( listenfd_, SOMAXCONN) == -1) 
 	{
 		logwrite->write(LogLevel::WARN, "listen failed with Error: ");
-		return;
+		return false;
 	}
 	setconnStatus(true);
 	logwrite->write(LogLevel::DEBUG, "server socket init success");
+	return true;
 }
 
 void Server::essentialData_initialise()
 {
-	db = new TradingDataHandler("database");
-	userList = db->getUserData();
+	db = new TradingDataHandler(mode_?"Testdatabase":"database");
+	if(db->connstatus)
+		userList = db->getUserData();
+	else
+		logwrite->write(LogLevel::ERROR, "(Server) Connect to DB failed");
 }
 
 void Server::acceptConn()
@@ -145,18 +148,9 @@ void Server::msgRecv(Connection *cn)
 			}
 			logwrite->write(LogLevel::DEBUG, " Server Receive : " + subStr);
 			if(cn->getloginstatus())
-				msgHandler(subStr);
+				msgHandler(subStr + "|" + std::to_string(cn->getConnectionID()) + "|");
 			else
 				loginMsgHandle(subStr, cn);
-			
-			//dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID())); //測試用
-			if(cn->getloginstatus()&&subStr!="<3")
-				dq->pushDTA(subStr + ":" + std::to_string(cn->getConnectionID()));
-			else
-			{
-				if(subStr != "<3")
-					cn->sendto("not log in");
-			}	
 		}
 		else
 		{
@@ -169,37 +163,26 @@ void Server::msgRecv(Connection *cn)
 
 void Server::msgHandler(std::string msg)
 {
-	if(msg == "<3")
+	if(msg.substr(0,2) == "<3")
 		return;
-	std::vector<std::string> res = split(msg, "|");
+	std::string codeNum = msg.substr(0, msg.find("|"));
 	try
 	{
-		switch(std::stoi(res[0]))
+		switch(std::stoi(codeNum))
 		{
 			case 87:
 				logwrite->write(LogLevel::DEBUG, "(Server) 下單處理");
-				od = new OrderData;
-				od->nid = res[1];
-				od->orderPrice = std::stod(res[2]);
-				od->symbol = "TXO";
-				od->userID = "0324027";
-
-				if(db->insertOrder(od))
-					logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
-				else
-					logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
+				dq->pushDTA(msg);
 				break;
 			default:
 				break;
 			
 		}
 	}
-	catch(const std::exception& e)
+	catch(...)
 	{
-		std::cerr << e.what() << '\n';
+		logwrite->write(LogLevel::DEBUG, "(Server) Handle Msg error ");
 	}
-	
-	
 }
 
 void Server::loginMsgHandle(std::string msg, Connection *cn)
@@ -213,11 +196,10 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 			if(userList.size()>0)
 			{
 				std::map<std::string, std::string>::iterator it = userList.find(res[1]);
-				std::cout<<it->second<<std::endl;
-				std::cout<<res[2]<<std::endl;
 				if(it->second == res[2])
 				{
 					logwrite->write(LogLevel::DEBUG, "(Server) login success");
+					cn->sendto(std::to_string(rand()%1000));
 					cn->setloginFlag(true);
 				}	
 			}
@@ -231,6 +213,22 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 			std::cerr << e.what() << '\n';
 		}
 	}
+}
+
+void Server::insertOrderToDB(OrderData *od)
+{
+	if(db->insertOrder(od))
+		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
+	else
+		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
+}
+
+void Server::insertReportToDB(std::string nid, std::string orderPrice, std::string side)
+{
+	if(db->insertReport(nid, orderPrice, side))
+		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
+	else
+		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
 }
 
 void Server::freeEmptysocket()
@@ -247,6 +245,11 @@ void Server::freeEmptysocket()
 			lckerase.unlock();
 		}
 	}
+}
+
+void Server::sendToClient(int connNum, std::string msg)
+{
+	connStorage_[connNum]->sendto(msg);
 }
 
 // int main()

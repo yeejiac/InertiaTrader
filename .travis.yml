@@ -2,11 +2,19 @@ language: c++
 services:
   - docker
 
+env:
+  - DOCKER_COMPOSE_VERSION=1.23.1
+
 before_install:
-  - echo "docker file not set yet"
-#   - docker build -t yeejiac/InertiaTrader -f ./docker/Dockerfile.dev .
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+  - docker build -f dockerfile.db -t mydb .
+  - docker build -t inertiatrader . --no-cache
 
 script:
-#   - docker run yeejiac/InertiaTrader make main -- --coverage
-  - echo "not done"
+  - docker run -d -p 3306:3306 --name mydb-container mydb
+  - docker logs mydb-container
+  - docker run -it inertiatrader ./trader.out test -- --coverage
   

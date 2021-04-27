@@ -1,13 +1,13 @@
 #include <iostream>
 
-class OrderData
+struct OrderData
 {
-public:
     std::string nid; //網單編號
     int volumn; //委託量
     double orderPrice; //委託價
     std::string symbol; //商品代號
     std::string userID; //委託人帳號
+    int side; //買賣別
 };
 
 struct ReportData
@@ -19,6 +19,7 @@ struct ReportData
     int execVolumn; //成交量
     std::string symbol; //商品代號
     std::string userID; //委託人帳號
+    int side; //買賣別
 };
 
 struct UserData
