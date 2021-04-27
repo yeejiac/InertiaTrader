@@ -163,21 +163,37 @@ void Trader::matchup()
     {
         cv_m.lock();
         logwrite->write(LogLevel::DEBUG, "(Trader) Do Match up process");
-        for(int i = 0; i <buyside_.size();i++) 
+        if(buyside_.size() != 0 && sellside_.size() != 0)
         {
-            for(int j = 0; j <sellside_.size();j++) 
+            int num = (sideFlag==Side::BUY?sellside_.size():buyside_.size());
+            for(int i = 0; i <num;i++) 
             {
-                if(buyside_[i]->getPrice() == sellside_[j]->getPrice())
+                if(sideFlag==Side::BUY)
                 {
-                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
-                    sendExecReport(buyside_[i]);
-                    sendExecReport(sellside_[j]);
-                    buyside_.erase(buyside_.begin() + i);
-                    sellside_.erase(sellside_.begin() + j);
+                    if(buyside_.back()->orderPrice == sellside_[i]->orderPrice)
+                    {
+                        logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
+                        sendExecReport(buyside_.back());
+                        sendExecReport(sellside_[i]);
+                        buyside_.pop_back();
+                        sellside_.erase(sellside_.begin() + i);
+                    }
                 }
+                else
+                {
+                    if(sellside_.back()->orderPrice == buyside_[i]->orderPrice)
+                    {
+                        logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
+                        sendExecReport(buyside_[i]);
+                        sendExecReport(sellside_.back());
+                        sellside_.pop_back();
+                        buyside_.erase(sellside_.begin() + i);
+                    }
+                }
+                
             }
         }
-        std::this_thread::sleep_for(std::chrono::seconds(10)); //十秒撮合一次
+        logwrite->write(LogLevel::DEBUG, "(Trader) Match up process done");
     }
 }
 
@@ -209,6 +225,7 @@ void Trader::getOrder()
             if(od->getStatus() == OrderStatus::VERIFIED)
             {
                 sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
+                sideFlag = Side(std::stoi(res[3]));
                 orderDataInsert(od);
                 logwrite->write(LogLevel::DEBUG, "(Trader) Input data to db");
                 odt = new OrderData;

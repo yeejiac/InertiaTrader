@@ -14,7 +14,7 @@ DBFLAG=-L/usr/lib64/mysql -lmysqlclient
 DEBUG= -g -w
 BIN=./lib/
 SRC=./src/
-LIB=-lcommonLib -lstdc++ -lpthread
+LIB=-lcommonLib -lstdc++ -lpthread -Wall
 
 CXXFILE=main.cpp
 TARGET=-o test.exe

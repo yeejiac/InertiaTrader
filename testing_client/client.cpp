@@ -42,7 +42,7 @@ void Client::socketini()
     serv_addr_.sin_family = AF_INET;
     serv_addr_.sin_port = htons(port);
 
-    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr_.sin_addr)<=0)  
+    if(inet_pton(AF_INET, addr, &serv_addr_.sin_addr)<=0)  
     { 
         logwrite->write(LogLevel::WARN, "(Client) Invalid address/ Address not supported");
         setConnStatus(false);

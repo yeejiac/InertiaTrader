@@ -11,6 +11,7 @@
 #include <condition_variable>
 #include <thread>
 #include <chrono>
+#include <set>
 
 #include "enumStorage.h"
 #include "server.h"
@@ -122,11 +123,13 @@ public:
     bool dqstatus = false;
     bool serverstatus = false;
     bool testmode;
+    Side sideFlag;
 private:
     std::vector<Order*> buyside_;
     std::vector<Order*> sellside_;
     std::vector<Report*> reportList_;
-    
+    // std::multiset<Order*> rawBuyside_;
+    // std::multiset<Order*> rawSellside_;
     bool traderstatus_;
     std::condition_variable cv_;
     std::mutex cv_m;
