@@ -88,9 +88,12 @@ class RiskController
 public:
     RiskController();
     ~RiskController();
-    void verify(Order *order, double priceNow);
+    void verify(Order *order);
+    std::vector<std::string> productList;
+    std::vector<std::string> tradeBasicData;
 private:
     std::string originalText;
+    
 };
 
 class Trader
@@ -113,7 +116,7 @@ public:
     Order *od;
     OrderData *odt;
     Report *rpt;
-    RiskController *rc;
+    RiskController *rc = new RiskController();
     Logwriter *logwrite;
     TradingDataHandler *db;
     bool dqstatus = false;
@@ -123,8 +126,7 @@ private:
     std::vector<Order*> buyside_;
     std::vector<Order*> sellside_;
     std::vector<Report*> reportList_;
-    std::vector<std::string> productList_;
-    std::vector<std::string> tradeBasicData_;
+    
     bool traderstatus_;
     std::condition_variable cv_;
     std::mutex cv_m;

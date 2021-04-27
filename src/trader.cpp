@@ -2,10 +2,11 @@
 
 RiskController::RiskController(){}
 
-void RiskController::verify(Order *order, double priceNow)
+void RiskController::verify(Order *order)
 {
     //委託單基本風控
-    if(order->orderPrice>priceNow*1.1||order->orderPrice<priceNow*0.9) //委託價檢核
+    std::vector<std::string>::iterator it = std::find(productList.begin(), productList.end(), order->symbol);
+    if(order->orderPrice>std::stod(tradeBasicData[2])*1.1||order->orderPrice<std::stod(tradeBasicData[2])*0.9||it==productList.end()) //委託價檢核
     {
         order->setStatus(OrderStatus::FAILED);
     }
@@ -115,8 +116,8 @@ void Trader::essentialData_initialise()
     db = new TradingDataHandler(testmode?"Testdatabase":"database");
 	if(db->connstatus)
     {
-        tradeBasicData_ = db->getTradingData();
-        productList_ = db->getProductList();
+        rc->tradeBasicData = db->getTradingData();
+        rc->productList = db->getProductList();
     }
 	else
 		logwrite->write(LogLevel::ERROR, "(Trader) Initial failed");
@@ -193,18 +194,21 @@ void Trader::getOrder()
         {
             logwrite->write(LogLevel::DEBUG, "(Trader) Handle Order Msg");
             std::vector<std::string> res = split(sr->dq->popDTA(), "|");
+            // for(int i = 0;i<res.size();i++)
+            // {
+            //     std::cout<<res[i]<<std::endl;
+            // }
             od = new Order;
             od->nid = res[1];
             od->orderPrice = std::stod(res[2]);
             od->setside(Side(std::stoi(res[3])));
             od->symbol = res[6];
             od->userID = "0324027";
-            od->connId = std::stoi(res[8]);
-            rc->verify(od, std::stod(tradeBasicData_[2]));
-            std::vector<std::string>::iterator it = std::find(productList_.begin(), productList_.end(), od->symbol);
-            if(od->getStatus() == OrderStatus::VERIFIED && it !=productList_.end() )
+            od->connId = std::stoi(res[7]);
+            rc->verify(od);
+            if(od->getStatus() == OrderStatus::VERIFIED)
             {
-                sr->sendToClient(std::stoi(res[6]), res[1] + "|success");
+                sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
                 orderDataInsert(od);
                 logwrite->write(LogLevel::DEBUG, "(Trader) Input data to db");
                 odt = new OrderData;
@@ -218,7 +222,7 @@ void Trader::getOrder()
             else
             {
                 logwrite->write(LogLevel::DEBUG, "(Trader) Send Error report");
-                sr->sendToClient(std::stoi(res[6]), res[1] + "|failed");
+                sr->sendToClient(std::stoi(res[7]), res[1] + "|failed");
             }
         }
         else
@@ -231,6 +235,7 @@ void Trader::getOrder()
 
 void Trader::sendExecReport(Order *order)
 {
+    std::lock_guard<std::mutex> lock(cv_m);
     sr->sendToClient(order->connId, order->nid + "|OrderExec");
     sr->insertReportToDB(order->nid, std::to_string(order->orderPrice), std::to_string(static_cast<int>(od->getside())));
 }
