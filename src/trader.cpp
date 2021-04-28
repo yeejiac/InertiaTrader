@@ -163,36 +163,38 @@ void Trader::matchup()
     {
         cv_m.lock();
         logwrite->write(LogLevel::DEBUG, "(Trader) Do Match up process");
-        if(buyside_.size() != 0 && sellside_.size() != 0)
+        int num = (sideFlag==Side::BUY?sellside_.size():buyside_.size());
+        for(int i = 0; i <num;i++) 
         {
-            int num = (sideFlag==Side::BUY?sellside_.size():buyside_.size());
-            for(int i = 0; i <num;i++) 
+            if(sideFlag==Side::BUY)
             {
-                if(sideFlag==Side::BUY)
+                if(buyside_.back()->orderPrice == sellside_[i]->orderPrice)
                 {
-                    if(buyside_.back()->orderPrice == sellside_[i]->orderPrice)
-                    {
-                        logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
-                        sendExecReport(buyside_.back());
-                        sendExecReport(sellside_[i]);
-                        buyside_.pop_back();
-                        sellside_.erase(sellside_.begin() + i);
-                    }
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Buy)");
+                    sendExecReport(buyside_.back());
+                    sendExecReport(sellside_[i]);
+                    buyside_.pop_back();
+                    sellside_.erase(sellside_.begin() + i);
+                    i = num;
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Buy)");
                 }
-                else
-                {
-                    if(sellside_.back()->orderPrice == buyside_[i]->orderPrice)
-                    {
-                        logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
-                        sendExecReport(buyside_[i]);
-                        sendExecReport(sellside_.back());
-                        sellside_.pop_back();
-                        buyside_.erase(sellside_.begin() + i);
-                    }
-                }
-                
             }
+            else
+            {
+                if(sellside_.back()->orderPrice == buyside_[i]->orderPrice)
+                {
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Sell)");
+                    sendExecReport(buyside_[i]);
+                    sendExecReport(sellside_.back());
+                    sellside_.pop_back();
+                    buyside_.erase(sellside_.begin() + i);
+                    i = num;
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Sell)");
+                }
+            }
+            
         }
+
         logwrite->write(LogLevel::DEBUG, "(Trader) Match up process done");
     }
 }
@@ -252,9 +254,10 @@ void Trader::getOrder()
 
 void Trader::sendExecReport(Order *order)
 {
-    std::lock_guard<std::mutex> lock(cv_m);
+    // std::lock_guard<std::mutex> lock(cv_m);
     sr->sendToClient(order->connId, order->nid + "|OrderExec");
-    sr->insertReportToDB(order->nid, std::to_string(order->orderPrice), std::to_string(static_cast<int>(od->getside())));
+    if(db->insertReport(order->nid, std::to_string(order->orderPrice), od->getside()==Side::BUY?"1":"2"))
+        logwrite->write(LogLevel::DEBUG, "(Trader) Execution report send");
 }
 
 void Trader::startTransaction()
