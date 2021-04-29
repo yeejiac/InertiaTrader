@@ -2,10 +2,11 @@
 
 RiskController::RiskController(){}
 
-void RiskController::verify(Order *order, double priceNow)
+void RiskController::verify(Order *order)
 {
     //委託單基本風控
-    if(order->orderPrice>priceNow*1.1||order->orderPrice<priceNow*0.9) //委託價檢核
+    std::vector<std::string>::iterator it = std::find(productList.begin(), productList.end(), order->symbol);
+    if(order->orderPrice>std::stod(tradeBasicData[2])*1.1||order->orderPrice<std::stod(tradeBasicData[2])*0.9||it==productList.end()) //委託價檢核
     {
         order->setStatus(OrderStatus::FAILED);
     }
@@ -115,8 +116,8 @@ void Trader::essentialData_initialise()
     db = new TradingDataHandler(testmode?"Testdatabase":"database");
 	if(db->connstatus)
     {
-        tradeBasicData_ = db->getTradingData();
-        productList_ = db->getProductList();
+        rc->tradeBasicData = db->getTradingData();
+        rc->productList = db->getProductList();
     }
 	else
 		logwrite->write(LogLevel::ERROR, "(Trader) Initial failed");
@@ -162,21 +163,39 @@ void Trader::matchup()
     {
         cv_m.lock();
         logwrite->write(LogLevel::DEBUG, "(Trader) Do Match up process");
-        for(int i = 0; i <buyside_.size();i++) 
+        int num = (sideFlag==Side::BUY?sellside_.size():buyside_.size());
+        for(int i = 0; i <num;i++) 
         {
-            for(int j = 0; j <sellside_.size();j++) 
+            if(sideFlag==Side::BUY)
             {
-                if(buyside_[i]->getPrice() == sellside_[j]->getPrice())
+                if(buyside_.back()->orderPrice == sellside_[i]->orderPrice)
                 {
-                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
-                    sendExecReport(buyside_[i]);
-                    sendExecReport(sellside_[j]);
-                    buyside_.erase(buyside_.begin() + i);
-                    sellside_.erase(sellside_.begin() + j);
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Buy)");
+                    sendExecReport(buyside_.back());
+                    sendExecReport(sellside_[i]);
+                    buyside_.pop_back();
+                    sellside_.erase(sellside_.begin() + i);
+                    i = num;
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Buy)");
                 }
             }
+            else
+            {
+                if(sellside_.back()->orderPrice == buyside_[i]->orderPrice)
+                {
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Sell)");
+                    sendExecReport(buyside_[i]);
+                    sendExecReport(sellside_.back());
+                    sellside_.pop_back();
+                    buyside_.erase(sellside_.begin() + i);
+                    i = num;
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Sell)");
+                }
+            }
+            
         }
-        std::this_thread::sleep_for(std::chrono::seconds(10)); //十秒撮合一次
+
+        logwrite->write(LogLevel::DEBUG, "(Trader) Match up process done");
     }
 }
 
@@ -193,18 +212,22 @@ void Trader::getOrder()
         {
             logwrite->write(LogLevel::DEBUG, "(Trader) Handle Order Msg");
             std::vector<std::string> res = split(sr->dq->popDTA(), "|");
+            // for(int i = 0;i<res.size();i++)
+            // {
+            //     std::cout<<res[i]<<std::endl;
+            // }
             od = new Order;
             od->nid = res[1];
             od->orderPrice = std::stod(res[2]);
             od->setside(Side(std::stoi(res[3])));
             od->symbol = res[6];
             od->userID = "0324027";
-            od->connId = std::stoi(res[8]);
-            rc->verify(od, std::stod(tradeBasicData_[2]));
-            std::vector<std::string>::iterator it = std::find(productList_.begin(), productList_.end(), od->symbol);
-            if(od->getStatus() == OrderStatus::VERIFIED && it !=productList_.end() )
+            od->connId = std::stoi(res[7]);
+            rc->verify(od);
+            if(od->getStatus() == OrderStatus::VERIFIED)
             {
-                sr->sendToClient(std::stoi(res[6]), res[1] + "|success");
+                sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
+                sideFlag = Side(std::stoi(res[3]));
                 orderDataInsert(od);
                 logwrite->write(LogLevel::DEBUG, "(Trader) Input data to db");
                 odt = new OrderData;
@@ -218,7 +241,7 @@ void Trader::getOrder()
             else
             {
                 logwrite->write(LogLevel::DEBUG, "(Trader) Send Error report");
-                sr->sendToClient(std::stoi(res[6]), res[1] + "|failed");
+                sr->sendToClient(std::stoi(res[7]), res[1] + "|failed");
             }
         }
         else
@@ -231,8 +254,10 @@ void Trader::getOrder()
 
 void Trader::sendExecReport(Order *order)
 {
+    // std::lock_guard<std::mutex> lock(cv_m);
     sr->sendToClient(order->connId, order->nid + "|OrderExec");
-    sr->insertReportToDB(order->nid, std::to_string(order->orderPrice), std::to_string(static_cast<int>(od->getside())));
+    if(db->insertReport(order->nid, std::to_string(order->orderPrice), od->getside()==Side::BUY?"1":"2"))
+        logwrite->write(LogLevel::DEBUG, "(Trader) Execution report send");
 }
 
 void Trader::startTransaction()

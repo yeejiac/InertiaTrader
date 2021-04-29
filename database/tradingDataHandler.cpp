@@ -113,12 +113,15 @@ bool TradingDataHandler::insertOrder(OrderData *od)
     {    
         // fprintf(stderr, "%s\n", mysql_error(conn));     
         std::string msg(mysql_error(conn));                                                                                                                                                   
-        logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure " + msg);        
+        logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure " + msg);       
         return false;                                                                  
     }
     else
+    {
         logwrite->write(LogLevel::DEBUG, "(MariaDB) Insert Order Success");
         return true;
+    }
+        
 }
 
 bool TradingDataHandler::insertReport(std::string nid, std::string orderPrice, std::string side)
@@ -134,8 +137,11 @@ bool TradingDataHandler::insertReport(std::string nid, std::string orderPrice, s
         return false;                                                                  
     }
     else
+    {
         logwrite->write(LogLevel::DEBUG, "(MariaDB) Insert Report Success");
         return true;
+    }
+        
 }
 
 // int main()
