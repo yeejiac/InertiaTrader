@@ -113,6 +113,7 @@ public:
     void sendExecReport(Order *order);
     int checkDataQueue();
     void startTransaction();
+    void endTransaction();
     Server *sr;
     Order *od;
     OrderData *odt;

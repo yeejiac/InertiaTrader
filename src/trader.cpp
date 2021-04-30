@@ -260,6 +260,11 @@ void Trader::sendExecReport(Order *order)
         logwrite->write(LogLevel::DEBUG, "(Trader) Execution report send");
 }
 
+void Trader::endTransaction()
+{
+    serverstatus = true;
+}
+
 void Trader::startTransaction()
 {
     //整體交易流程
