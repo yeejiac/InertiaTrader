@@ -39,6 +39,7 @@ public:
     void setStatus(OrderStatus status);
     OrderStatus getStatus();
     int connId;
+    int side;
 private:
     int stockNum_;
     long nid_;

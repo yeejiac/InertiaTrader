@@ -219,7 +219,8 @@ void Trader::getOrder()
             od = new Order;
             od->nid = res[1];
             od->orderPrice = std::stod(res[2]);
-            od->setside(Side(std::stoi(res[3])));
+            od->setside(res[3]=="1"?Side::BUY: Side::SELL);
+            od->side = std::stoi(res[3]);
             od->symbol = res[6];
             od->userID = "0324027";
             od->connId = std::stoi(res[7]);
@@ -256,7 +257,7 @@ void Trader::sendExecReport(Order *order)
 {
     // std::lock_guard<std::mutex> lock(cv_m);
     sr->sendToClient(order->connId, order->nid + "|OrderExec");
-    if(db->insertReport(order->nid, std::to_string(order->orderPrice), od->getside()==Side::BUY?"1":"2"))
+    if(db->insertReport(order->nid, std::to_string(order->orderPrice), order->getside()==Side::BUY?"1":"2"))
         logwrite->write(LogLevel::DEBUG, "(Trader) Execution report send");
 }
 
