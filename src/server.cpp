@@ -171,9 +171,12 @@ void Server::msgHandler(std::string msg)
 		switch(std::stoi(codeNum))
 		{
 			case 87:
-				logwrite->write(LogLevel::DEBUG, "(Server) 下單處理");
+				logwrite->write(LogLevel::DEBUG, "(Server) 收到下單電文");
 				dq->pushDTA(msg);
 				break;
+			case 88:
+				logwrite->write(LogLevel::DEBUG, "(Server) 收到刪單電文");
+				dq_orderhandle->pushDTA(msg);
 			default:
 				break;
 			
@@ -222,14 +225,6 @@ void Server::insertOrderToDB(OrderData *od)
 	else
 		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
 }
-
-// void Server::insertReportToDB(std::string nid, std::string orderPrice, std::string side)
-// {
-// 	if(db->insertReport(nid, orderPrice, side))
-// 		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
-// 	else
-// 		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
-// }
 
 void Server::freeEmptysocket()
 {

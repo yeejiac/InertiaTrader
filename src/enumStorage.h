@@ -27,6 +27,14 @@ enum class OrderStatus
     NONE = 0
 };
 
+enum class OrderSituation
+{
+    NORMAL = 1,
+    EXECUTE = 2,
+    CANCEL = 3,
+    NONE = 0
+};
+
 enum class ReportType
 {
     OrderReport = 1, 

@@ -37,6 +37,16 @@ OrderStatus Order::getStatus()
     return orderstatus_;
 }
 
+void Order::setSituation(OrderSituation situation)
+{
+    ordersituation_ = situation;
+}
+
+OrderSituation Order::getSituation()
+{
+    return ordersituation_;
+}
+
 void Order::setside(Side side)
 {
     side_ = side;
@@ -51,6 +61,8 @@ double Order::getPrice()
 {
     return price_;
 }
+
+
 
 void Report::setReportType(ReportType rpt)
 {
@@ -192,9 +204,7 @@ void Trader::matchup()
                     logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Sell)");
                 }
             }
-            
         }
-
         logwrite->write(LogLevel::DEBUG, "(Trader) Match up process done");
     }
 }
@@ -212,10 +222,6 @@ void Trader::getOrder()
         {
             logwrite->write(LogLevel::DEBUG, "(Trader) Handle Order Msg");
             std::vector<std::string> res = split(sr->dq->popDTA(), "|");
-            // for(int i = 0;i<res.size();i++)
-            // {
-            //     std::cout<<res[i]<<std::endl;
-            // }
             od = new Order;
             od->nid = res[1];
             od->orderPrice = std::stod(res[2]);
@@ -224,6 +230,7 @@ void Trader::getOrder()
             od->symbol = res[6];
             od->userID = "0324027";
             od->connId = std::stoi(res[7]);
+            od->setSituation(OrderSituation::NORMAL);
             rc->verify(od);
             if(od->getStatus() == OrderStatus::VERIFIED)
             {
@@ -253,9 +260,34 @@ void Trader::getOrder()
     }
 }
 
+void Trader::getCancelOrder()
+{
+    logwrite->write(LogLevel::DEBUG, "(Trader) Get Order Cancel/Modify thread start");
+    while(getTraderStatus())
+    {
+        if(sr->dq_orderhandle->checkSpace()>0)
+        {
+            logwrite->write(LogLevel::DEBUG, "(Trader) Handle Order Cancel/Modify");
+            std::vector<std::string> res = split(sr->dq_orderhandle->popDTA(), "|");
+            if(res[0] == "88")
+            {
+                if(res[3] == "1")
+                std::vector<Order*>::iterator it;
+                long nid = std::stol(res[1]);
+                // it = std::find(buyside_.begin(), buyside_.end(), [&](Order *obj) {return obj->getNid() == nid;});
+                // if(toErase != buyside_.end())
+                // {
+                //     sr->sendToClient(std::stoi(res[7]), res[1] + "|Cancel order success");
+
+                // }
+            }
+        }
+    }
+
+}
+
 void Trader::sendExecReport(Order *order)
 {
-    // std::lock_guard<std::mutex> lock(cv_m);
     sr->sendToClient(order->connId, order->nid + "|OrderExec");
     if(db->insertReport(order->nid, std::to_string(order->orderPrice), order->getside()==Side::BUY?"1":"2"))
         logwrite->write(LogLevel::DEBUG, "(Trader) Execution report send");
