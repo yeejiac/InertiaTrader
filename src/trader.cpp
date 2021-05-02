@@ -272,14 +272,20 @@ void Trader::getCancelOrder()
             if(res[0] == "88")
             {
                 if(res[3] == "1")
-                std::vector<Order*>::iterator it;
-                long nid = std::stol(res[1]);
-                // it = std::find(buyside_.begin(), buyside_.end(), [&](Order *obj) {return obj->getNid() == nid;});
-                // if(toErase != buyside_.end())
-                // {
-                //     sr->sendToClient(std::stoi(res[7]), res[1] + "|Cancel order success");
-
-                // }
+                {
+                    std::string nid = res[1];
+                    auto it = std::find_if(buyside_.begin(), buyside_.end(), [&](Order* obj) {return obj->nid == nid;});
+                    if (it != buyside_.end())
+                    {
+                        std::unique_lock<std::mutex> lckerase(cv_m);
+                        it = buyside_.erase(it);
+                        lckerase.unlock();
+                    }
+                    else
+                    {
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|no this order");
+                    }
+                }
             }
         }
     }
