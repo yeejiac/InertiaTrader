@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS `Order` (
   `Symbol` varchar(50) NOT NULL,
   `UserID` float NOT NULL,
   `Side` int(1) NOT NULL,
+  `Order_situation` int(1) NOT NULL COMMENT '1 = 委託中，2 = 成交, 3 = 刪單',
   PRIMARY KEY (`NID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
