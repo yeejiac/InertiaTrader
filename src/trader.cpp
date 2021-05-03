@@ -273,18 +273,41 @@ void Trader::getCancelOrder()
             {
                 if(res[3] == "1")
                 {
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Delete buy order");
                     std::string nid = res[1];
                     auto it = std::find_if(buyside_.begin(), buyside_.end(), [&](Order* obj) {return obj->nid == nid;});
                     if (it != buyside_.end())
                     {
-                        std::unique_lock<std::mutex> lckerase(cv_m);
-                        it = buyside_.erase(it);
-                        lckerase.unlock();
+                        logwrite->write(LogLevel::DEBUG, "(Trader) find target, try delete");
+                        buyside_.erase(it);
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|cancel order success");
                     }
                     else
                     {
+                        logwrite->write(LogLevel::DEBUG, "(Trader) target not found");
                         sr->sendToClient(std::stoi(res[7]), res[1] + "|no this order");
                     }
+                }
+                else if(res[3] == "2")
+                {
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Delete sell order");
+                    std::string nid = res[1];
+                    auto it = std::find_if(sellside_.begin(), sellside_.end(), [&](Order* obj) {return obj->nid == nid;});
+                    if (it != sellside_.end())
+                    {
+                        logwrite->write(LogLevel::DEBUG, "(Trader) find target, try delete");
+                        sellside_.erase(it);
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|cancel order success");
+                    }
+                    else
+                    {
+                        logwrite->write(LogLevel::DEBUG, "(Trader) target not found");
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|no this order");
+                    }
+                }
+                else
+                {
+                    sr->sendToClient(std::stoi(res[7]), res[1] + "|cancel order error");
                 }
             }
         }
@@ -316,7 +339,9 @@ void Trader::startTransaction()
     if(sr->getconnStatus()&&testmode == false)
     {
         std::thread orderReceive(&Trader::getOrder, this);
+        std::thread cancelorderReceive(&Trader::getCancelOrder, this);
         std::thread matchup(&Trader::matchup, this);
+        cancelorderReceive.detach();
         matchup.detach();
         orderReceive.detach();
     }
