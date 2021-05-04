@@ -217,7 +217,7 @@ void Trader::getOrder()
     while(getTraderStatus())
     {
         // std::unique_lock<std::mutex> lk2(cv_m);
-        // cv_.wait(lk2, [this]{return sr->dq->checkSpace() != 0;});
+        // cv_.wait(lk2, [this]{return sr->dq->checkSpace() > 0;});
         if(sr->dq->checkSpace()>0)
         {
             logwrite->write(LogLevel::DEBUG, "(Trader) Handle Order Msg");
@@ -281,6 +281,7 @@ void Trader::getCancelOrder()
                         logwrite->write(LogLevel::DEBUG, "(Trader) find target, try delete");
                         buyside_.erase(it);
                         sr->sendToClient(std::stoi(res[7]), res[1] + "|cancel order success");
+                        db->updateOrder(nid, "3");
                     }
                     else
                     {
@@ -298,6 +299,7 @@ void Trader::getCancelOrder()
                         logwrite->write(LogLevel::DEBUG, "(Trader) find target, try delete");
                         sellside_.erase(it);
                         sr->sendToClient(std::stoi(res[7]), res[1] + "|cancel order success");
+                        db->updateOrder(nid, "3");
                     }
                     else
                     {

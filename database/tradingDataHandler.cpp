@@ -145,6 +145,24 @@ bool TradingDataHandler::insertReport(std::string nid, std::string orderPrice, s
         
 }
 
+bool TradingDataHandler::updateOrder(std::string nid, std::string status)
+{
+    std::string query = "UPDATE `stock`.`Order` SET `Order_situation`='" + status + "' WHERE `NID`=" + nid + ";";
+    std::cout<<query<<std::endl;
+    if (mysql_query(conn, query.c_str()) != 0)                   
+    {    
+        // fprintf(stderr, "%s\n", mysql_error(conn));     
+        std::string msg(mysql_error(conn));                                                                                                                                                   
+        logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure " + msg);        
+        return false;                                                                  
+    }
+    else
+    {
+        logwrite->write(LogLevel::DEBUG, "(MariaDB) Update Order Success");
+        return true;
+    }
+}
+
 // int main()
 // {
 //     TradingDataHandler *db = new TradingDataHandler("database");
