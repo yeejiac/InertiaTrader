@@ -175,7 +175,8 @@ void Server::msgHandler(std::string msg)
 				dq->pushDTA(msg);
 				break;
 			case 88:
-				logwrite->write(LogLevel::DEBUG, "(Server) 收到刪單電文");
+			case 89:
+				logwrite->write(LogLevel::DEBUG, "(Server) 收到刪單或改單電文");
 				dq_orderhandle->pushDTA(msg);
 			default:
 				break;

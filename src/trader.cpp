@@ -185,6 +185,7 @@ void Trader::matchup()
                     logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Buy)");
                     sendExecReport(buyside_.back());
                     sendExecReport(sellside_[i]);
+
                     buyside_.pop_back();
                     sellside_.erase(sellside_.begin() + i);
                     i = num;
@@ -252,11 +253,6 @@ void Trader::getOrder()
                 sr->sendToClient(std::stoi(res[7]), res[1] + "|failed");
             }
         }
-        else
-        {
-            std::this_thread::sleep_for(std::chrono::seconds(5));
-        }
-        
     }
 }
 
@@ -281,7 +277,7 @@ void Trader::getCancelOrder()
                         logwrite->write(LogLevel::DEBUG, "(Trader) find target, try delete");
                         buyside_.erase(it);
                         sr->sendToClient(std::stoi(res[7]), res[1] + "|cancel order success");
-                        db->updateOrder(nid, "3");
+                        db->updateOrderSituation(nid, "3");
                     }
                     else
                     {
@@ -299,7 +295,7 @@ void Trader::getCancelOrder()
                         logwrite->write(LogLevel::DEBUG, "(Trader) find target, try delete");
                         sellside_.erase(it);
                         sr->sendToClient(std::stoi(res[7]), res[1] + "|cancel order success");
-                        db->updateOrder(nid, "3");
+                        db->updateOrderSituation(nid, "3");
                     }
                     else
                     {
@@ -312,6 +308,42 @@ void Trader::getCancelOrder()
                     sr->sendToClient(std::stoi(res[7]), res[1] + "|cancel order error");
                 }
             }
+            else
+            {
+                logwrite->write(LogLevel::DEBUG, "(Trader) Handle modify order");
+                std::string nid = res[1];
+                auto it = std::find_if(buyside_.begin(), buyside_.end(), [&](Order* obj) {return obj->nid == nid;});
+                if(res[3] == "1")
+                {
+                    if (it != buyside_.end())
+                    {
+                        logwrite->write(LogLevel::DEBUG, "(Trader) find target, try modify");
+                        (*it)->orderPrice = std::stod(res[2]);
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|modify order success");
+                        db->updateOrderPrice(nid, res[2]);
+                    }
+                    else
+                    {
+                        logwrite->write(LogLevel::DEBUG, "(Trader) modify target not found");
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|no this order, modify failed");
+                    }
+                }
+                else
+                {
+                    if (it != sellside_.end())
+                    {
+                        logwrite->write(LogLevel::DEBUG, "(Trader) find target, try modify");
+                        (*it)->orderPrice = std::stod(res[2]);
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|modify order success");
+                        db->updateOrderPrice(nid, res[2]);
+                    }
+                    else
+                    {
+                        logwrite->write(LogLevel::DEBUG, "(Trader) modify target not found");
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|no this order, modify failed");
+                    }
+                }
+            }
         }
     }
 
@@ -322,6 +354,7 @@ void Trader::sendExecReport(Order *order)
     sr->sendToClient(order->connId, order->nid + "|OrderExec");
     if(db->insertReport(order->nid, std::to_string(order->orderPrice), order->getside()==Side::BUY?"1":"2"))
         logwrite->write(LogLevel::DEBUG, "(Trader) Execution report send");
+    db->updateOrderSituation(order->nid, "2");
 }
 
 void Trader::endTransaction()
