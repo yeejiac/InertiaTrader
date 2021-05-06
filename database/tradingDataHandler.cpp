@@ -106,8 +106,9 @@ std::vector<std::string> TradingDataHandler::getProductList()
 
 bool TradingDataHandler::insertOrder(OrderData *od)
 {
-    std::string value = od->nid + ","  + std::to_string(od->orderPrice) + "," +"'"+ od->symbol +"'" +"," + od->userID + "," + std::to_string(od->side);
-    std::string query = "INSERT INTO `stock`.`Order` (`NID`, `OrderPrice`, `Symbol`, `UserID`, `Side`) VALUES (" + value + ");";
+    std::string value = od->nid + ","  + std::to_string(od->orderPrice) + "," +"'"+ od->symbol +"'" +"," + od->userID + "," 
+                        + std::to_string(od->side) + ", '1'";
+    std::string query = "INSERT INTO `stock`.`Order` (`NID`, `OrderPrice`, `Symbol`, `UserID`, `Side`, `Order_situation`) VALUES (" + value + ");";
     std::cout<<query<<std::endl;
     if (mysql_query(conn, query.c_str()) != 0)                   
     {    
@@ -142,6 +143,42 @@ bool TradingDataHandler::insertReport(std::string nid, std::string orderPrice, s
         return true;
     }
         
+}
+
+bool TradingDataHandler::updateOrderSituation(std::string nid, std::string status)
+{
+    std::string query = "UPDATE `stock`.`Order` SET `Order_situation`='" + status + "' WHERE `NID`=" + nid + ";";
+    std::cout<<query<<std::endl;
+    if (mysql_query(conn, query.c_str()) != 0)                   
+    {    
+        // fprintf(stderr, "%s\n", mysql_error(conn));     
+        std::string msg(mysql_error(conn));                                                                                                                                                   
+        logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure " + msg);        
+        return false;                                                                  
+    }
+    else
+    {
+        logwrite->write(LogLevel::DEBUG, "(MariaDB) Update Order Success");
+        return true;
+    }
+}
+
+bool TradingDataHandler::updateOrderPrice(std::string nid, std::string price)
+{
+    std::string query = "UPDATE `stock`.`Order` SET `OrderPrice`='" + price + "' WHERE `NID`=" + nid + ";";
+    std::cout<<query<<std::endl;
+    if (mysql_query(conn, query.c_str()) != 0)                   
+    {    
+        // fprintf(stderr, "%s\n", mysql_error(conn));     
+        std::string msg(mysql_error(conn));                                                                                                                                                   
+        logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure " + msg);        
+        return false;                                                                  
+    }
+    else
+    {
+        logwrite->write(LogLevel::DEBUG, "(MariaDB) Update Order Success");
+        return true;
+    }
 }
 
 // int main()

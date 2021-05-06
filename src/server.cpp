@@ -171,9 +171,13 @@ void Server::msgHandler(std::string msg)
 		switch(std::stoi(codeNum))
 		{
 			case 87:
-				logwrite->write(LogLevel::DEBUG, "(Server) 下單處理");
+				logwrite->write(LogLevel::DEBUG, "(Server) 收到下單電文");
 				dq->pushDTA(msg);
 				break;
+			case 88:
+			case 89:
+				logwrite->write(LogLevel::DEBUG, "(Server) 收到刪單或改單電文");
+				dq_orderhandle->pushDTA(msg);
 			default:
 				break;
 			
@@ -223,14 +227,6 @@ void Server::insertOrderToDB(OrderData *od)
 		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
 }
 
-// void Server::insertReportToDB(std::string nid, std::string orderPrice, std::string side)
-// {
-// 	if(db->insertReport(nid, orderPrice, side))
-// 		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
-// 	else
-// 		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
-// }
-
 void Server::freeEmptysocket()
 {
 	std::map<int, Connection*>::iterator it;
@@ -249,6 +245,7 @@ void Server::freeEmptysocket()
 
 void Server::sendToClient(int connNum, std::string msg)
 {
+	logwrite->write(LogLevel::DEBUG, "(Server) Send to client " + std::to_string(connNum));
 	connStorage_[connNum]->sendto(msg);
 }
 

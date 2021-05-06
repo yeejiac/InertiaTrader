@@ -38,7 +38,10 @@ public:
     double getPrice();
     void setStatus(OrderStatus status);
     OrderStatus getStatus();
+    void setSituation(OrderSituation situation);
+    OrderSituation getSituation();
     int connId;
+    int side;
 private:
     int stockNum_;
     long nid_;
@@ -47,7 +50,8 @@ private:
     Market market_;
     double price_;
     std::string timeString_;
-    OrderStatus orderstatus_;
+    OrderStatus orderstatus_; //經過風控後委託狀態
+    OrderSituation ordersituation_; //委託單狀態
 };
 
 class Report
@@ -110,9 +114,11 @@ public:
     void matchup();
     void loadInitialise();
     void getOrder();
+    void getCancelOrder();
     void sendExecReport(Order *order);
     int checkDataQueue();
     void startTransaction();
+    void endTransaction();
     Server *sr;
     Order *od;
     OrderData *odt;

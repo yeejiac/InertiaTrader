@@ -47,7 +47,8 @@ public:
 	void getConnObject(Connection *cn, int connNum);
 	Logwriter *logwrite;
 	OrderData *od;
-	DataQueue *dq = new DataQueue(10);
+	DataQueue *dq = new DataQueue(100);
+	DataQueue *dq_orderhandle = new DataQueue(100);
 	TradingDataHandler *db;
 	std::string initFilePath;
 	std::string initchosen;
