@@ -16,7 +16,8 @@ services:
     command: >
       /bin/bash -c "
       sleep 15;
-      ./trader.out test;"
+      ./trader.out test;
+      docker stop mydb_container;"
     depends_on:
       - database
     networks:

@@ -17,5 +17,6 @@ script:
   # - docker run -d -p 3306:3306 --name mydb-container mydb
   # - docker logs mydb-container
   # - docker run -it inertiatrader ./trader.out test -- --coverage
-  - docker-compose up
+  - docker-compose up -d
+  - docker-compose logs
   
