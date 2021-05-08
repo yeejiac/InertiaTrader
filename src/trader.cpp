@@ -218,7 +218,7 @@ void Trader::getOrder()
     while(getTraderStatus())
     {
         // std::unique_lock<std::mutex> lk2(cv_m);
-        // cv_.wait(lk2, [this]{return sr->dq->checkSpace() > 0;});
+        // cv_.wait_for(lk2, std::chrono::seconds(1),[this]{return sr->dq->checkSpace() > 0;});
         if(sr->dq->checkSpace()>0)
         {
             logwrite->write(LogLevel::DEBUG, "(Trader) Handle Order Msg");
@@ -264,7 +264,8 @@ void Trader::getCancelOrder()
         if(sr->dq_orderhandle->checkSpace()>0)
         {
             logwrite->write(LogLevel::DEBUG, "(Trader) Handle Order Cancel/Modify");
-            std::vector<std::string> res = split(sr->dq_orderhandle->popDTA(), "|");
+            std::string val = sr->dq_orderhandle->popDTA();
+            std::vector<std::string> res = split(val, "|");
             if(res[0] == "88")
             {
                 if(res[3] == "1")

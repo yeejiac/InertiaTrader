@@ -1,6 +1,33 @@
-ngrok:
-  image: shkoliar/ngrok:latest
-  ports:
-    - 4551:4551
-  environment:
-    - PORT=1200
+version: '2'
+services:
+  database:
+    image: mydb
+    container_name: mydb_container
+    ports:
+      - "3306:3306"
+    networks:
+      vpcbr:
+        ipv4_address: 172.28.0.3
+  trader:
+    image: inertiatrader
+    container_name: inertiatrader
+    ports:
+      - "1203:1203"
+    command: >
+      /bin/bash -c "
+      sleep 15;
+      ./trader.out test;
+      docker stop mydb_container;"
+    depends_on:
+      - database
+    networks:
+      vpcbr:
+        ipv4_address: 172.28.0.2
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
