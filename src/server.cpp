@@ -245,8 +245,8 @@ void Server::freeEmptysocket()
 
 void Server::sendToClient(int connNum, std::string msg)
 {
-	logwrite->write(LogLevel::DEBUG, "(Server) Send to client " + std::to_string(connNum) + "\n");
-	connStorage_[connNum]->sendto(msg);
+	logwrite->write(LogLevel::DEBUG, "(Server) Send to client " + std::to_string(connNum));
+	connStorage_[connNum]->sendto(msg + "\n");
 }
 
 // int main()

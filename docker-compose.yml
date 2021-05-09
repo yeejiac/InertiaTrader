@@ -1,16 +1,21 @@
 version: '2'
 services:
   database:
-    image: mydb
-    container_name: mydb_container
+    # image: mydb
+    # container_name: mydb_container
+    build: 
+      context: .
+      dockerfile: dockerfile.db
     ports:
       - "3306:3306"
     networks:
       vpcbr:
         ipv4_address: 172.28.0.3
-  trader:
-    image: inertiatrader
-    container_name: inertiatrader
+  inertiatrader:
+    # image: inertiatrader
+    # container_name: inertiatrader
+    build: 
+      context: .
     ports:
       - "1203:1203"
     command: >
