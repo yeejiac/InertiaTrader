@@ -107,7 +107,7 @@ void Server::heartbeat(Connection *cn)
 	while(connStatus_)
 	{
 		std::string hearbeatString = "<3&";
-		cn->sendto(hearbeatString);
+		cn->sendto(hearbeatString + "\n");
 		logwrite->write(LogLevel::DEBUG, "Send heartbeat");
 		if(!cn->getRecvStatus())
 		{
@@ -127,6 +127,7 @@ void Server::msgRecv(Connection *cn)
 	{
 		bool connStatus = true;
 		connStatus = cn->recvfrom(recvStr);
+		logwrite->write(LogLevel::DEBUG, "Recv row msg : " + recvStr);
 		if(connStatus)
 		{
 			if(tempStr!=""&&recvStr!="<3&")
@@ -134,7 +135,6 @@ void Server::msgRecv(Connection *cn)
 				recvStr = tempStr + recvStr;
 				tempStr = "";
 			}
-
 			if(recvStr.back()!='&')
 			{
 				std::size_t found = recvStr.find_last_of('&');
@@ -203,7 +203,7 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 				if(it->second == res[2])
 				{
 					logwrite->write(LogLevel::DEBUG, "(Server) login success");
-					cn->sendto(std::to_string(rand()%1000));
+					cn->sendto(std::to_string(rand()%1000) + "\n");
 					cn->setloginFlag(true);
 				}	
 			}
@@ -245,7 +245,7 @@ void Server::freeEmptysocket()
 
 void Server::sendToClient(int connNum, std::string msg)
 {
-	logwrite->write(LogLevel::DEBUG, "(Server) Send to client " + std::to_string(connNum));
+	logwrite->write(LogLevel::DEBUG, "(Server) Send to client " + std::to_string(connNum) + "\n");
 	connStorage_[connNum]->sendto(msg);
 }
 
