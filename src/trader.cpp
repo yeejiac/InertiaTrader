@@ -253,6 +253,8 @@ void Trader::getOrder()
                 sr->sendToClient(std::stoi(res[7]), res[1] + "|failed");
             }
         }
+        else
+            std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 }
 
@@ -346,6 +348,8 @@ void Trader::getCancelOrder()
                 }
             }
         }
+        else
+            std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 
 }
