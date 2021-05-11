@@ -21,7 +21,7 @@ services:
     command: >
       /bin/bash -c "
       sleep 15;
-      ./trader.out test;"
+      ./trader.out devel;"
     depends_on:
       - database
     networks:
