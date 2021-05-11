@@ -235,7 +235,6 @@ void Trader::getOrder()
             rc->verify(od);
             if(od->getStatus() == OrderStatus::VERIFIED)
             {
-                sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
                 sideFlag = Side(std::stoi(res[3]));
                 orderDataInsert(od);
                 logwrite->write(LogLevel::DEBUG, "(Trader) Input data to db");
@@ -245,7 +244,10 @@ void Trader::getOrder()
                 odt->symbol = od->symbol;
                 odt->userID = od->userID;
                 odt->side = static_cast<int>(od->getside());
-                sr->insertOrderToDB(odt);
+                if(sr->insertOrderToDB(odt))
+                    sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
+                else
+                    sr->sendToClient(std::stoi(res[7]), res[1] + "|failed, repeat nid");
             }
             else
             {

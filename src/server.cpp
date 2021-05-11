@@ -219,12 +219,19 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 	}
 }
 
-void Server::insertOrderToDB(OrderData *od)
+bool Server::insertOrderToDB(OrderData *od)
 {
 	if(db->insertOrder(od))
+	{
 		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
+		return true;
+	}
 	else
+	{
 		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
+		return false;
+	}
+		
 }
 
 void Server::freeEmptysocket()

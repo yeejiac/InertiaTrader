@@ -41,7 +41,7 @@ public:
 	void setconnStatus(bool connStatus);
 	bool getconnStatus();
 	void freeEmptysocket();
-	void insertOrderToDB(OrderData *od);
+	bool insertOrderToDB(OrderData *od);
 	void insertReportToDB(std::string nid, std::string orderPrice, std::string side);
 	void loginMsgHandle(std::string msg, Connection *cn);
 	void getConnObject(Connection *cn, int connNum);
