@@ -14,8 +14,8 @@ std::string DataQueue::popDTA()
 {
     std::unique_lock<std::mutex> lck(mutex_);
     cv_.wait_for(lck, std::chrono::seconds(1), [this] { return !dataQueue_.empty(); });
-    std::string val = dataQueue_.back();
-    dataQueue_.front();
+    std::string val = dataQueue_.front();
+    dataQueue_.pop();
     logwrite.write(LogLevel::DEBUG, "(DataQueue) pop data: "+val);
     return val;
 }

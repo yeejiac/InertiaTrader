@@ -19,4 +19,5 @@ script:
   # - docker run -it inertiatrader ./trader.out test -- --coverage
   - docker-compose up -d
   - docker-compose logs
+  - docker-compose down
   
