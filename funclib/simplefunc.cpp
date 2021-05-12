@@ -23,6 +23,6 @@ std::vector<std::string> split(std::string str, std::string delim) {
 
 // int main()
 // {
-//     std::string str = "11|22|33|44";
-//     std::cout<<split(str, "|")[3]<<std::endl;;
+//     std::string str = "11|";
+//     std::cout<<split(str, "|").size()<<std::endl;;
 // }

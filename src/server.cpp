@@ -148,7 +148,13 @@ void Server::msgRecv(Connection *cn)
 			}
 			logwrite->write(LogLevel::DEBUG, " Server Receive : " + subStr);
 			if(cn->getloginstatus())
-				msgHandler(subStr + "|" + std::to_string(cn->getConnectionID()) + "|");
+			{
+				std::vector<std::string> tempVec = split(subStr, "&");
+				for(int i = 0; i < tempVec.size(); i++)
+				{
+					msgHandler(tempVec[i] + "|" + std::to_string(cn->getConnectionID()) + "|");
+				}
+			}
 			else
 				loginMsgHandle(subStr, cn);
 		}
@@ -157,7 +163,6 @@ void Server::msgRecv(Connection *cn)
 			st_.notify_one();
 			freeEmptysocket();
 		}
-		std::this_thread::sleep_for(std::chrono::seconds(2));
 	}
 }
 
