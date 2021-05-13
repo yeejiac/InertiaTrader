@@ -182,27 +182,45 @@ void Trader::matchup()
             {
                 if(buyside_.back()->orderPrice == sellside_[i]->orderPrice)
                 {
-                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Buy)");
-                    sendExecReport(buyside_.back());
-                    sendExecReport(sellside_[i]);
+                    try
+                    {
+                        std::lock_guard<std::mutex> lk(cv_m);
+                        logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Buy)");
+                        sendExecReport(buyside_.back());
+                        sendExecReport(sellside_[i]);
 
-                    buyside_.pop_back();
-                    sellside_.erase(sellside_.begin() + i);
-                    i = num;
-                    logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Buy)");
+                        buyside_.pop_back();
+                        sellside_.erase(sellside_.begin() + i);
+                        i = num;
+                        logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Buy)");
+                    }
+                    catch(const std::exception& e)
+                    {
+                        std::cerr << e.what() << '\n';
+                    }
+                    
+                    
                 }
             }
             else
             {
                 if(sellside_.back()->orderPrice == buyside_[i]->orderPrice)
                 {
-                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Sell)");
-                    sendExecReport(buyside_[i]);
-                    sendExecReport(sellside_.back());
-                    sellside_.pop_back();
-                    buyside_.erase(sellside_.begin() + i);
-                    i = num;
-                    logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Sell)");
+                    try
+                    {
+                        std::lock_guard<std::mutex> lk(cv_m);
+                        logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Sell)");
+                        sendExecReport(buyside_[i]);
+                        sendExecReport(sellside_.back());
+                        sellside_.pop_back();
+                        buyside_.erase(sellside_.begin() + i);
+                        i = num;
+                        logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Sell)");
+                    }
+                    catch(const std::exception& e)
+                    {
+                        std::cerr << e.what() << '\n';
+                    }
                 }
             }
         }
