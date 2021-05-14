@@ -86,6 +86,22 @@ INSERT INTO `User` (`user`, `password`) VALUES
 	('0324027', '123');
 /*!40000 ALTER TABLE `User` ENABLE KEYS */;
 
+-- 傾印  檢視 stock.Valid_Order 結構
+-- 建立臨時表格，以解決檢視依存性錯誤
+CREATE TABLE `Valid_Order` (
+	`NID` FLOAT(12) NOT NULL,
+	`OrderPrice` DOUBLE(22,0) NOT NULL,
+	`Symbol` VARCHAR(50) NOT NULL COLLATE 'latin1_swedish_ci',
+	`UserID` FLOAT(12) NOT NULL,
+	`Side` INT(1) NOT NULL,
+	`Order_situation` INT(1) NOT NULL COMMENT '1 = 委託中，2 = 成交, 3 = 刪單'
+) ENGINE=MyISAM;
+
+-- 傾印  檢視 stock.Valid_Order 結構
+-- 移除臨時表格，並建立最終檢視結構
+DROP TABLE IF EXISTS `Valid_Order`;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `Valid_Order` AS select `Order`.`NID` AS `NID`,`Order`.`OrderPrice` AS `OrderPrice`,`Order`.`Symbol` AS `Symbol`,`Order`.`UserID` AS `UserID`,`Order`.`Side` AS `Side`,`Order`.`Order_situation` AS `Order_situation` from `Order` where (`Order`.`Order_situation` = '1');
+
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

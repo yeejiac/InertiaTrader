@@ -178,6 +178,7 @@ void Trader::matchup()
         int num = (sideFlag==Side::BUY?sellside_.size():buyside_.size());
         for(int i = 0; i <num;i++) 
         {
+            logwrite->write(LogLevel::DEBUG, "(Trader) Execute Match up");
             if(sideFlag==Side::BUY)
             {
                 if(buyside_.back()->orderPrice == sellside_[i]->orderPrice)
@@ -213,7 +214,7 @@ void Trader::matchup()
                         sendExecReport(buyside_[i]);
                         sendExecReport(sellside_.back());
                         sellside_.pop_back();
-                        buyside_.erase(sellside_.begin() + i);
+                        buyside_.erase(buyside_.begin() + i);
                         i = num;
                         logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Sell)");
                     }
