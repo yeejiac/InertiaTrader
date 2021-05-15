@@ -110,6 +110,7 @@ Trader::Trader(bool mode):testmode(mode)
     logwrite = new Logwriter("TD", "./log/");
     logwrite->write(LogLevel::DEBUG, "Virtual trader initialise");
     essentialData_initialise();
+    loadExistOrder();
     setTraderStatus(true);
 }
 
@@ -133,6 +134,33 @@ void Trader::essentialData_initialise()
     }
 	else
 		logwrite->write(LogLevel::ERROR, "(Trader) Initial failed");
+}
+
+void Trader::loadExistOrder()
+{
+    logwrite->write(LogLevel::ERROR, "(Trader) start load exist order");
+    std::vector<OrderData*> existOrder = db->getExistOrder();
+    logwrite->write(LogLevel::ERROR, "(Trader) exist order volume : " + existOrder.size());
+    for(int i = 0; i<existOrder.size(); i++)
+    {
+        if(existOrder[i]->side == 1)
+        {
+            Order *od = new Order();
+            od->nid = existOrder[i]->nid;
+            od->orderPrice = existOrder[i]->orderPrice;
+            od->side = existOrder[i]->side;
+            buyside_.push_back(std::move(od));
+        }
+        else
+        {
+            Order *od = new Order();
+            od->nid = existOrder[i]->nid;
+            od->orderPrice = existOrder[i]->orderPrice;
+            od->side = existOrder[i]->side;
+            sellside_.push_back(std::move(od));
+        }
+    }
+    logwrite->write(LogLevel::ERROR, "(Trader) load exist order success");
 }
 
 // void Trader::rawStrHandle(std::string rawStr)
@@ -199,8 +227,6 @@ void Trader::matchup()
                     {
                         std::cerr << e.what() << '\n';
                     }
-                    
-                    
                 }
             }
             else
@@ -263,6 +289,7 @@ void Trader::getOrder()
                 odt->symbol = od->symbol;
                 odt->userID = od->userID;
                 odt->side = static_cast<int>(od->getside());
+                std::cout<<res[7]<<std::endl;
                 if(sr->insertOrderToDB(odt))
                     sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
                 else

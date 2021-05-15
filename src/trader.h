@@ -107,6 +107,7 @@ public:
     Trader(bool mode);
     ~Trader();
     void essentialData_initialise();
+    void loadExistOrder(); //Disconnect mechanism
     void setTraderStatus(bool status);
     bool getTraderStatus();
     void rawStrHandle(std::string rawStr);

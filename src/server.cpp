@@ -160,8 +160,8 @@ void Server::msgRecv(Connection *cn)
 		}
 		else
 		{
-			st_.notify_one();
 			freeEmptysocket();
+			break;
 		}
 	}
 }
@@ -208,7 +208,7 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 				if(it->second == res[2])
 				{
 					logwrite->write(LogLevel::DEBUG, "(Server) login success");
-					cn->sendto(std::to_string(rand()%1000) + "\n");
+					cn->sendto("login|" + std::to_string(rand()%100000) + "\n");
 					cn->setloginFlag(true);
 				}	
 			}
