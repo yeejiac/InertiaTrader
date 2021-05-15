@@ -8,6 +8,7 @@ services:
       dockerfile: dockerfile.db
     ports:
       - "3306:3306"
+    restart: always
     networks:
       vpcbr:
         ipv4_address: 172.28.0.3
@@ -16,6 +17,7 @@ services:
     # container_name: inertiatrader
     build: 
       context: .
+    restart: always
     ports:
       - "1203:1203"
     command: >
