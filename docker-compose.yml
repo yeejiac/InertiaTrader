@@ -29,6 +29,12 @@ services:
     networks:
       vpcbr:
         ipv4_address: 172.28.0.2
+  # webservice:
+  #   image: yeejiac/inertia:lastest
+  #   depends_on:
+  #     - inertiatrader
+  #   ports:
+  #     - "8080:8080"
   portainerservice:
     image: portainer/portainer
     volumes:

@@ -204,7 +204,8 @@ void Trader::matchup()
         cv_m.lock();
         logwrite->write(LogLevel::DEBUG, "(Trader) Do Match up process");
         int num = (sideFlag==Side::BUY?sellside_.size():buyside_.size());
-        for(int i = 0; i <num;i++) 
+        int i = 0;
+        while(i <num) 
         {
             logwrite->write(LogLevel::DEBUG, "(Trader) Execute Match up");
             if(sideFlag==Side::BUY)
@@ -220,8 +221,8 @@ void Trader::matchup()
 
                         buyside_.pop_back();
                         sellside_.erase(sellside_.begin() + i);
-                        i = num;
                         logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Buy)");
+                        break;
                     }
                     catch(const std::exception& e)
                     {
@@ -241,8 +242,9 @@ void Trader::matchup()
                         sendExecReport(sellside_.back());
                         sellside_.pop_back();
                         buyside_.erase(buyside_.begin() + i);
-                        i = num;
                         logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Sell)");
+                        break;
+                        
                     }
                     catch(const std::exception& e)
                     {
@@ -250,6 +252,7 @@ void Trader::matchup()
                     }
                 }
             }
+            i++;
         }
         logwrite->write(LogLevel::DEBUG, "(Trader) Match up process done");
     }
