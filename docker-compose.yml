@@ -1,17 +1,53 @@
-version: '2'
+version: '3.7'
 services:
-  database:
+  database_master:
     # image: mydb
     # container_name: mydb_container
     build: 
       context: .
       dockerfile: dockerfile.db
+    container_name: database_master
+    volumes:
+      - type: bind
+        source: ./doc/master.cnf
+        target: /etc/mysql/my.cnf
     ports:
       - "3306:3306"
+    # command: [
+    #   "mysql -u root -pAa1234 -P 3307 < ./sql/master_setting.sql",
+    # ]
     restart: always
     networks:
       vpcbr:
         ipv4_address: 172.28.0.3
+
+  mysql-slave:
+    build:
+      context: .
+      dockerfile: dockerfile.db
+    container_name: mysql-slave
+    ports:
+      - '3308:3306'
+    volumes:
+      - type: bind
+        source: ./doc/slave.cnf
+        target: /etc/mysql/conf.d/slave.cnf
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_REPLICATION_MODE=slave
+      - MYSQL_REPLICATION_USER=slave_user
+      - MYSQL_REPLICATION_PASSWORD=password
+    depends_on:
+      - database_master
+    command: [
+      "--skip-log-bin",
+      "--skip-log-slave-updates",
+      # "mysql -u root -pAa1234 -P 3307 < ./sql/slave_setting.sql",
+    ]
+    networks:
+      vpcbr:
+        ipv4_address: 172.28.0.4
+
   inertiatrader:
     # image: inertiatrader
     # container_name: inertiatrader
@@ -25,7 +61,7 @@ services:
       sleep 15;
       ./trader.out devel;"
     depends_on:
-      - database
+      - database_master
     networks:
       vpcbr:
         ipv4_address: 172.28.0.2
@@ -52,4 +88,3 @@ networks:
     ipam:
       config:
         - subnet: 172.28.0.0/16
-          gateway: 172.28.0.1
