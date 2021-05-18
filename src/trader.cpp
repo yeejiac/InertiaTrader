@@ -214,7 +214,7 @@ void Trader::matchup()
                 {
                     try
                     {
-                        std::lock_guard<std::mutex> lk(cv_m);
+                        // std::lock_guard<std::mutex> lk(cv_m);
                         logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Buy)");
                         sendExecReport(buyside_.back());
                         sendExecReport(sellside_[i]);
@@ -236,7 +236,7 @@ void Trader::matchup()
                 {
                     try
                     {
-                        std::lock_guard<std::mutex> lk(cv_m);
+                        // std::lock_guard<std::mutex> lk(cv_m);
                         logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Sell)");
                         sendExecReport(buyside_[i]);
                         sendExecReport(sellside_.back());
