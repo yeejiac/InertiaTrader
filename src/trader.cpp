@@ -203,58 +203,31 @@ void Trader::matchup()
     {
         cv_m.lock();
         logwrite->write(LogLevel::DEBUG, "(Trader) Do Match up process");
-        int num = (sideFlag==Side::BUY?sellside_.size():buyside_.size());
+        int num = sellside_.size();
+        int num2 = buyside_.size();
         int i = 0;
-        while(i <num) 
+        while(i <num&&num2>0&&num>0) 
         {
             logwrite->write(LogLevel::DEBUG, "(Trader) Execute Match up");
-            if(sideFlag==Side::BUY)
+            for(int j = 0; j<num2;j++)
             {
-                if(buyside_.back()->orderPrice == sellside_[i]->orderPrice)
+                if(buyside_[j]->orderPrice == sellside_[i]->orderPrice)
                 {
-                    try
-                    {
-                        // std::lock_guard<std::mutex> lk(cv_m);
-                        logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Buy)");
-                        sendExecReport(buyside_.back());
-                        sendExecReport(sellside_[i]);
-
-                        buyside_.pop_back();
-                        sellside_.erase(sellside_.begin() + i);
-                        logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Buy)");
-                        break;
-                    }
-                    catch(const std::exception& e)
-                    {
-                        std::cerr << e.what() << '\n';
-                    }
+                    std::shared_ptr<Order*> a = std::make_shared<Order*> (std::move(buyside_[j]));
+                    reportList_.push_back(a);
+                    std::shared_ptr<Order*> b = std::make_shared<Order*> (std::move(sellside_[i]));
+                    reportList_.push_back(b);
+                    sellside_.erase(sellside_.begin() + i);
+                    buyside_.erase(buyside_.begin() + j);
+                    j = num2;
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
                 }
-            }
-            else
-            {
-                if(sellside_.back()->orderPrice == buyside_[i]->orderPrice)
-                {
-                    try
-                    {
-                        // std::lock_guard<std::mutex> lk(cv_m);
-                        logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Sell)");
-                        sendExecReport(buyside_[i]);
-                        sendExecReport(sellside_.back());
-                        sellside_.pop_back();
-                        buyside_.erase(buyside_.begin() + i);
-                        logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Sell)");
-                        break;
-                        
-                    }
-                    catch(const std::exception& e)
-                    {
-                        std::cerr << e.what() << '\n';
-                    }
-                }
+                break;
             }
             i++;
         }
         logwrite->write(LogLevel::DEBUG, "(Trader) Match up process done");
+        std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 }
 
@@ -413,6 +386,22 @@ void Trader::sendExecReport(Order *order)
     db->updateOrderSituation(order->nid, "2");
 }
 
+void Trader::generateExecReport()
+{
+    while(getTraderStatus())
+    {
+        if(reportList_.size()>0)
+        {
+            logwrite->write(LogLevel::DEBUG, "(Trader) Handle Exec Order");
+            std::shared_ptr<Order*> p = reportList_.back();
+            sendExecReport(*p.get());
+            p.reset();
+            reportList_.pop_back();
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+    }
+}
+
 void Trader::endTransaction()
 {
     serverstatus = true;
@@ -432,9 +421,11 @@ void Trader::startTransaction()
         std::thread orderReceive(&Trader::getOrder, this);
         std::thread cancelorderReceive(&Trader::getCancelOrder, this);
         std::thread matchup(&Trader::matchup, this);
+        std::thread handleExecReport(&Trader::generateExecReport, this);
         cancelorderReceive.detach();
         matchup.detach();
         orderReceive.detach();
+        handleExecReport.detach();
     }
     else
     {

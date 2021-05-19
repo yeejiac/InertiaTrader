@@ -117,6 +117,7 @@ public:
     void getOrder();
     void getCancelOrder();
     void sendExecReport(Order *order);
+    void generateExecReport();
     int checkDataQueue();
     void startTransaction();
     void endTransaction();
@@ -134,7 +135,7 @@ public:
 private:
     std::vector<Order*> buyside_;
     std::vector<Order*> sellside_;
-    std::vector<Report*> reportList_;
+    std::vector<std::shared_ptr<Order*>> reportList_;
     // std::multiset<Order*> rawBuyside_;
     // std::multiset<Order*> rawSellside_;
     bool traderstatus_;
