@@ -138,9 +138,9 @@ void Trader::essentialData_initialise()
 
 void Trader::loadExistOrder()
 {
-    logwrite->write(LogLevel::ERROR, "(Trader) start load exist order");
+    logwrite->write(LogLevel::DEBUG, "(Trader) start load exist order");
     std::vector<OrderData*> existOrder = db->getExistOrder();
-    logwrite->write(LogLevel::ERROR, "(Trader) exist order volume : " + existOrder.size());
+    logwrite->write(LogLevel::DEBUG, "(Trader) exist order volume : " + existOrder.size());
     for(int i = 0; i<existOrder.size(); i++)
     {
         if(existOrder[i]->side == 1)
@@ -160,7 +160,7 @@ void Trader::loadExistOrder()
             sellside_.push_back(std::move(od));
         }
     }
-    logwrite->write(LogLevel::ERROR, "(Trader) load exist order success");
+    logwrite->write(LogLevel::DEBUG, "(Trader) load exist order success");
 }
 
 // void Trader::rawStrHandle(std::string rawStr)
@@ -201,7 +201,7 @@ void Trader::matchup()
     cv_.wait(lk1, [this]{return sr->getconnStatus();});
     while(getTraderStatus())
     {
-        cv_m.lock();
+        std::lock_guard<std::mutex> lck(cv_m);
         logwrite->write(LogLevel::DEBUG, "(Trader) Do Match up process");
         int num = sellside_.size();
         int num2 = buyside_.size();
@@ -219,15 +219,17 @@ void Trader::matchup()
                     reportList_.push_back(b);
                     sellside_.erase(sellside_.begin() + i);
                     buyside_.erase(buyside_.begin() + j);
-                    j = num2;
                     logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
+                    j = num2;
                 }
-                break;
             }
-            i++;
+            break;
         }
         logwrite->write(LogLevel::DEBUG, "(Trader) Match up process done");
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        if(&num2>0||num>0)
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+        else
+            std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 

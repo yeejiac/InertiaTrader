@@ -77,13 +77,15 @@ INSERT INTO `ProductList` (`product_id`, `transaction_flag`, `note`) VALUES
 CREATE TABLE IF NOT EXISTS `User` (
   `user` varchar(50) NOT NULL,
   `password` varchar(50) NOT NULL,
+  `balance` double(22,0) NOT NULL COMMENT '投入資產價值(單位KKC)',
+  `book_value` double NOT NULL COMMENT '帳面價值',
   PRIMARY KEY (`user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- 正在傾印表格  stock.User 的資料：~0 rows (近似值)
+-- 正在傾印表格  stock.User 的資料：~1 rows (近似值)
 /*!40000 ALTER TABLE `User` DISABLE KEYS */;
-INSERT INTO `User` (`user`, `password`) VALUES
-	('0324027', '123');
+INSERT INTO `User` (`user`, `password`, `balance`, `book_value`) VALUES
+	('0324027', '123', 1000000, 1000000);
 /*!40000 ALTER TABLE `User` ENABLE KEYS */;
 
 -- 傾印  檢視 stock.Valid_Order 結構
