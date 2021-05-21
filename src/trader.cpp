@@ -12,6 +12,7 @@ void RiskController::verify(Order *order)
     }
     else
     {
+        
         order->setStatus(OrderStatus::VERIFIED);
     }
     // Report *rpt = new Report(order);
@@ -114,6 +115,14 @@ Trader::Trader(bool mode):testmode(mode)
     setTraderStatus(true);
 }
 
+long Trader::generateNid()
+{
+    ulong unsignedKey = (((ulong) nid_sub1) << 32) | nid_sub2;
+    long key = (long) unsignedKey;
+    nid_sub2++;
+    return key;
+}
+
 void Trader::setTraderStatus(bool status)
 {
     traderstatus_ = status;
@@ -191,7 +200,7 @@ void Trader::orderDataInsert(Order *order)
         sellside_.push_back(order);
         logwrite->write(LogLevel::DEBUG, "(Trader) Get SellSide Order");
     }
-    cv_m.unlock();    
+    cv_m.unlock();
 }
 
 void Trader::matchup()
@@ -258,6 +267,7 @@ void Trader::getOrder()
             rc->verify(od);
             if(od->getStatus() == OrderStatus::VERIFIED)
             {
+                od->client_serialNum = generateNid();
                 sideFlag = Side(std::stoi(res[3]));
                 orderDataInsert(od);
                 logwrite->write(LogLevel::DEBUG, "(Trader) Input data to db");
@@ -267,6 +277,7 @@ void Trader::getOrder()
                 odt->symbol = od->symbol;
                 odt->userID = od->userID;
                 odt->side = static_cast<int>(od->getside());
+                odt->client_serialnum = od->client_serialNum;
                 std::cout<<res[7]<<std::endl;
                 if(sr->insertOrderToDB(odt))
                     sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
@@ -383,7 +394,7 @@ void Trader::getCancelOrder()
 void Trader::sendExecReport(Order *order)
 {
     sr->sendToClient(order->connId, order->nid + "|OrderExec");
-    if(db->insertReport(order->nid, std::to_string(order->orderPrice), order->getside()==Side::BUY?"1":"2"))
+    if(db->insertReport(order->nid, std::to_string(order->orderPrice), order->getside()==Side::BUY?"1":"2", std::to_string(order->client_serialNum)))
         logwrite->write(LogLevel::DEBUG, "(Trader) Execution report send");
     db->updateOrderSituation(order->nid, "2");
 }

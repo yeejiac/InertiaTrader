@@ -40,7 +40,7 @@ Instructions on how to use them in your own application are linked below.
 
 | Plugin | README |
 | ------ | ------ |
-| GitHub | [InertiaTrader/github/README.md][PlGh] |
+| GitHub | [InertiaTrader/README.md][PlGh] |
 
 
 ## Docker

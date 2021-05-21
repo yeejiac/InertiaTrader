@@ -30,6 +30,7 @@ public:
     double orderPrice; //委託價
     std::string symbol; //商品代號
     std::string userID; //委託人帳號
+    long client_serialNum;
     long getNid();
     void setNid();
     void setside(Side side);
@@ -121,6 +122,7 @@ public:
     int checkDataQueue();
     void startTransaction();
     void endTransaction();
+    long generateNid();
     Server *sr;
     Order *od;
     OrderData *odt;
@@ -132,6 +134,8 @@ public:
     bool serverstatus = false;
     bool testmode;
     Side sideFlag;
+    int nid_sub1 = rand() % INT32_MAX;
+    int nid_sub2 = 1;
 private:
     std::vector<Order*> buyside_;
     std::vector<Order*> sellside_;
