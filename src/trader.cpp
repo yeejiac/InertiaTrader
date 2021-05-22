@@ -152,40 +152,18 @@ void Trader::loadExistOrder()
     logwrite->write(LogLevel::DEBUG, "(Trader) exist order volume : " + existOrder.size());
     for(int i = 0; i<existOrder.size(); i++)
     {
+        Order *od = new Order();
+        od->nid = existOrder[i]->nid;
+        od->orderPrice = existOrder[i]->orderPrice;
+        od->side = existOrder[i]->side;
+        od->client_serialNum = existOrder[i]->client_serialnum;
         if(existOrder[i]->side == 1)
-        {
-            Order *od = new Order();
-            od->nid = existOrder[i]->nid;
-            od->orderPrice = existOrder[i]->orderPrice;
-            od->side = existOrder[i]->side;
             buyside_.push_back(std::move(od));
-        }
         else
-        {
-            Order *od = new Order();
-            od->nid = existOrder[i]->nid;
-            od->orderPrice = existOrder[i]->orderPrice;
-            od->side = existOrder[i]->side;
             sellside_.push_back(std::move(od));
-        }
     }
     logwrite->write(LogLevel::DEBUG, "(Trader) load exist order success");
 }
-
-// void Trader::rawStrHandle(std::string rawStr)
-// {
-//     char strdelimiter = '&';
-//     size_t pos = 0;
-//     std::string token;
-//     while ((pos = rawStr.find(strdelimiter)) != std::string::npos) 
-//     {
-//         token = rawStr.substr(0, pos);
-//         std::cout << token << std::endl;
-//         orderDataInsert(token);
-//         rawStr.erase(0, pos + 1);
-//     }
-//     orderDataInsert(rawStr);
-// }
 
 void Trader::orderDataInsert(Order *order)
 {

@@ -132,6 +132,7 @@ std::vector<OrderData*> TradingDataHandler::getExistOrder()
         od->nid = row[0];
         od->orderPrice = std::stod(row[1]);
         od->side = std::stoi(row[4]);
+        od->client_serialnum = std::stol(row[6]);
         result.push_back(std::move(od));
     }
     mysql_free_result(res);
