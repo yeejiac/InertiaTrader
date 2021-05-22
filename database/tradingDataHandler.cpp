@@ -29,29 +29,65 @@ TradingDataHandler::~TradingDataHandler()
 //     return result;
 // }
 
-std::map<std::string, std::string> TradingDataHandler::getUserData()
+// std::map<std::string, std::string> TradingDataHandler::getUserData()
+// {
+//     std::map<std::string, std::string> result;
+//     if(!conn)
+//     {
+//         logwrite->write(LogLevel::ERROR, "(MariaDB) DB connect failed ");
+//         return result;
+//     }
+//     std::string sqlcommand = "select * from stock.User ;";
+//     logwrite->write(LogLevel::DEBUG, "(MariaDB) sql command : " + sqlcommand);
+
+//     mysql_query(conn, sqlcommand.c_str());
+//     res = mysql_store_result(conn);
+//     while ((row = mysql_fetch_row(res))) 
+//     {
+//         result.insert(std::pair<std::string, std::string>(row[0], row[1]));
+//     }
+
+//     // std::map<std::string, std::string>::iterator it;
+//     // for(it = result.begin(); it != result.end(); it++)
+//     // {
+//     //     std::cout<<it->first<<" "<<it->second<<std::endl;
+//     // }
+//     mysql_free_result(res);
+//     return result;
+// }
+
+std::map<std::string, UserData*> TradingDataHandler::getUserData()
 {
-    std::map<std::string, std::string> result;
+    std::map<std::string, UserData*> result;
     if(!conn)
     {
         logwrite->write(LogLevel::ERROR, "(MariaDB) DB connect failed ");
         return result;
     }
-    std::string sqlcommand = "select * from stock.User ;";
+    std::string sqlcommand = "SELECT * FROM stock.User;";
     logwrite->write(LogLevel::DEBUG, "(MariaDB) sql command : " + sqlcommand);
-
     mysql_query(conn, sqlcommand.c_str());
     res = mysql_store_result(conn);
+    int num_fields = mysql_num_fields(res);
+    
     while ((row = mysql_fetch_row(res))) 
     {
-        result.insert(std::pair<std::string, std::string>(row[0], row[1]));
+        UserData *ud = new UserData();
+        unsigned long *lengths = mysql_fetch_lengths(res);
+        // for(int i = 0 ; i<num_fields;i++)
+        // {
+        //     char *filed = row[i];
+        //     unsigned int field_length = lengths[i];
+            
+        //     printf("column[%d],length[%d],data[%s]\n", i, field_length, filed ? filed : "null");
+        // }
+        ud->userID = row[0];
+        ud->password = row[1];
+        ud->balance = std::stod(row[2]);
+        ud->book_value = std::stod(row[3]);
+        std::pair<std::string, UserData*> temp(ud->userID, ud);
+        result.insert(temp);
     }
-
-    // std::map<std::string, std::string>::iterator it;
-    // for(it = result.begin(); it != result.end(); it++)
-    // {
-    //     std::cout<<it->first<<" "<<it->second<<std::endl;
-    // }
     mysql_free_result(res);
     return result;
 }

@@ -27,4 +27,6 @@ struct UserData
 {
     std::string userID;
     std::string password;
+    double balance; //帳戶現金總額
+    double book_value; //未實現損益
 };

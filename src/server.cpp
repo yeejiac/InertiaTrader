@@ -185,7 +185,6 @@ void Server::msgHandler(std::string msg)
 				dq_orderhandle->pushDTA(msg);
 			default:
 				break;
-			
 		}
 	}
 	catch(...)
@@ -204,8 +203,8 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 		{
 			if(userList.size()>0)
 			{
-				std::map<std::string, std::string>::iterator it = userList.find(res[1]);
-				if(it->second == res[2])
+				std::map<std::string, UserData*>::iterator it = userList.find(res[1]);
+				if(it->second->password == res[2])
 				{
 					logwrite->write(LogLevel::DEBUG, "(Server) login success");
 					cn->sendto("login|" + std::to_string(rand()%100000) + "\n");

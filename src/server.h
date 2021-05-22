@@ -21,6 +21,7 @@
 #include "../funclib/logwriter.h"
 #include "../funclib/simplefunc.h"
 #include "../database/tradingDataHandler.h"
+// #include "../database/table.h"
 #include "connection.h"
 
 
@@ -53,7 +54,7 @@ public:
 	std::string initFilePath;
 	std::string initchosen;
 	std::string logPath;
-	std::map<std::string, std::string> userList;
+	std::map<std::string, UserData*> userList;
 private:
 	int listenfd_;
 	int connfd_;

@@ -12,7 +12,8 @@ class TradingDataHandler:public MariaDBHandler
 public:
     TradingDataHandler(std::string iniopt);
     ~TradingDataHandler();
-    std::map<std::string, std::string> getUserData();
+    // std::map<std::string, std::string> getUserData();
+    std::map<std::string, UserData*> getUserData();
     std::vector<std::string> getTradingData();
     std::vector<std::string> getProductList();
     std::vector<OrderData*> getExistOrder();
