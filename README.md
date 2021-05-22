@@ -14,6 +14,10 @@ This project is mainly produce to simulate a stock/future trading system
 - Immediate account detail provide 
 - Databases replication
 
+## Structure
+
+![Alt text](./UML.svg)
+
 
 ## Tech
 
