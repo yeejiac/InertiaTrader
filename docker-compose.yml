@@ -65,11 +65,9 @@ services:
     networks:
       vpcbr:
         ipv4_address: 172.28.0.2
-        
+
   webservice:
-    build: 
-      context: ./InertiaTrader_webservice/
-      dockerfile: dockerfile.web
+    image: yeejiac/webservice:lastest
     depends_on:
       - inertiatrader
     ports:
