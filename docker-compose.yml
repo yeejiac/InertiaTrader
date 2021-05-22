@@ -67,7 +67,7 @@ services:
         ipv4_address: 172.28.0.2
 
   webservice:
-    image: yeejiac/webservice:lastest
+    image: yeejiac/webservice:latest
     depends_on:
       - inertiatrader
     ports:
