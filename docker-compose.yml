@@ -70,8 +70,12 @@ services:
     image: yeejiac/webservice:latest
     depends_on:
       - inertiatrader
+    restart: always
     ports:
       - "8080:8080"
+    networks:
+      vpcbr:
+        ipv4_address: 172.28.0.5
 
   portainerservice:
     image: portainer/portainer
