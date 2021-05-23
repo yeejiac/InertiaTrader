@@ -177,6 +177,7 @@ void Server::msgHandler(std::string msg)
 		{
 			case 87:
 				logwrite->write(LogLevel::DEBUG, "(Server) 收到下單電文");
+				//進行基本委託檢核(帳戶餘額檢查)
 				dq->pushDTA(msg);
 				break;
 			case 88:
@@ -209,6 +210,7 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 					logwrite->write(LogLevel::DEBUG, "(Server) login success");
 					cn->sendto("login|" + std::to_string(rand()%100000) + "\n");
 					cn->setloginFlag(true);
+					cn->username = res[1];
 				}	
 			}
 			else
@@ -258,6 +260,13 @@ void Server::sendToClient(int connNum, std::string msg)
 {
 	logwrite->write(LogLevel::DEBUG, "(Server) Send to client " + std::to_string(connNum));
 	connStorage_[connNum]->sendto(msg + "\n");
+}
+
+Connection* Server::getConnObject(int connNum)
+{
+	Connection *cn = connStorage_[connNum];
+	std::cout<<cn->username<<std::endl;
+	return cn;
 }
 
 // int main()

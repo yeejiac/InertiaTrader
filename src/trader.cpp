@@ -240,27 +240,38 @@ void Trader::getOrder()
             od->side = std::stoi(res[3]);
             od->symbol = res[6];
             od->userID = "0324027";
+            std::cout<<res[7]<<std::endl;
             od->connId = std::stoi(res[7]);
             od->setSituation(OrderSituation::NORMAL);
             rc->verify(od);
             if(od->getStatus() == OrderStatus::VERIFIED)
             {
-                od->client_serialNum = generateNid();
-                sideFlag = Side(std::stoi(res[3]));
-                orderDataInsert(od);
-                logwrite->write(LogLevel::DEBUG, "(Trader) Input data to db");
-                odt = new OrderData;
-                odt->nid = od->nid;
-                odt->orderPrice = od->orderPrice;
-                odt->symbol = od->symbol;
-                odt->userID = od->userID;
-                odt->side = static_cast<int>(od->getside());
-                odt->client_serialnum = od->client_serialNum;
-                std::cout<<res[7]<<std::endl;
-                if(sr->insertOrderToDB(odt))
-                    sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
+                Connection *cn = sr->getConnObject(od->connId);
+                std::map<std::string, UserData*>::iterator it = sr->userList.find(cn->username);
+                if(it->second->balance>od->orderPrice*1000)
+                {
+                    od->client_serialNum = generateNid();
+                    sideFlag = Side(std::stoi(res[3]));
+                    orderDataInsert(od);
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Input data to db");
+                    odt = new OrderData;
+                    odt->nid = od->nid;
+                    odt->orderPrice = od->orderPrice;
+                    odt->symbol = od->symbol;
+                    odt->userID = od->userID;
+                    odt->side = static_cast<int>(od->getside());
+                    odt->client_serialnum = od->client_serialNum;
+                    std::cout<<res[7]<<std::endl;
+                    if(sr->insertOrderToDB(odt))
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
+                    else
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|failed, repeat nid");
+                }
                 else
-                    sr->sendToClient(std::stoi(res[7]), res[1] + "|failed, repeat nid");
+                {
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Insufficient balance");
+                    sr->sendToClient(std::stoi(res[7]), res[1] + "|failed, Insufficient balance");
+                }    
             }
             else
             {
