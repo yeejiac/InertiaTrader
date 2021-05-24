@@ -13,9 +13,6 @@ services:
         target: /etc/mysql/my.cnf
     ports:
       - "3306:3306"
-    # command: [
-    #   "mysql -u root -pAa1234 -P 3307 < ./sql/master_setting.sql",
-    # ]
     restart: always
     networks:
       vpcbr:
@@ -42,7 +39,6 @@ services:
     command: [
       "--skip-log-bin",
       "--skip-log-slave-updates",
-      # "mysql -u root -pAa1234 -P 3307 < ./sql/slave_setting.sql",
     ]
     networks:
       vpcbr:
@@ -68,11 +64,14 @@ services:
 
   webservice:
     image: yeejiac/webservice:latest
-    restart: always
     depends_on:
       - inertiatrader
+    restart: always
     ports:
       - "8080:8080"
+    networks:
+      vpcbr:
+        ipv4_address: 172.28.0.5
 
   portainerservice:
     image: portainer/portainer
