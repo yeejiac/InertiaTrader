@@ -5,7 +5,7 @@ services:
     # container_name: mydb_container
     build: 
       context: .
-      dockerfile: dockerfile.db
+      dockerfile: dockerfile.db_master
     container_name: database_master
     volumes:
       - type: bind
@@ -24,7 +24,7 @@ services:
   mysql-slave:
     build:
       context: .
-      dockerfile: dockerfile.db
+      dockerfile: dockerfile.db_slave
     container_name: mysql-slave
     ports:
       - '3308:3306'
@@ -68,6 +68,7 @@ services:
 
   webservice:
     image: yeejiac/webservice:latest
+    restart: always
     depends_on:
       - inertiatrader
     ports:
@@ -75,6 +76,7 @@ services:
 
   portainerservice:
     image: portainer/portainer
+    restart: always
     volumes:
       - portainer_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
