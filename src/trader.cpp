@@ -198,8 +198,10 @@ void Trader::matchup()
             logwrite->write(LogLevel::DEBUG, "(Trader) Execute Match up");
             for(int j = 0; j<num2;j++)
             {
-                if(buyside_[j]->orderPrice == sellside_[i]->orderPrice)
+                if(buyside_[j]->orderPrice >= sellside_[i]->orderPrice)
                 {
+                    buyside_[j]->execPrice = sellside_[i]->orderPrice;
+                    sellside_[i]->execPrice = sellside_[i]->orderPrice;
                     std::shared_ptr<Order*> a = std::make_shared<Order*> (std::move(buyside_[j]));
                     reportList_.push_back(a);
                     std::shared_ptr<Order*> b = std::make_shared<Order*> (std::move(sellside_[i]));
@@ -383,7 +385,7 @@ void Trader::getCancelOrder()
 void Trader::sendExecReport(Order *order)
 {
     sr->sendToClient(order->connId, order->nid + "|OrderExec");
-    if(db->insertReport(order->nid, std::to_string(order->orderPrice), order->getside()==Side::BUY?"1":"2", std::to_string(order->client_serialNum)))
+    if(db->insertReport(order->nid, std::to_string(order->orderPrice), std::to_string(order->execPrice),order->getside()==Side::BUY?"1":"2", std::to_string(order->client_serialNum)))
         logwrite->write(LogLevel::DEBUG, "(Trader) Execution report send");
     db->updateOrderSituation(order->nid, "2");
 }

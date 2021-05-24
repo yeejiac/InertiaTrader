@@ -39,6 +39,7 @@ USE `stock`;
 -- 傾印  資料表 stock.ExecReport 結構
 CREATE TABLE IF NOT EXISTS `ExecReport` (
   `NID` float NOT NULL,
+  `OrderPrice` double NOT NULL,
   `ExecPrice` double(22,0) NOT NULL,
   `Side` int(1) NOT NULL,
   `Client_SerialNum` bigint(20) NOT NULL DEFAULT '0',

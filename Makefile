@@ -33,7 +33,7 @@ main: $(CXXFILE)
 	$(CXX) $(TRADER_SERVER)
 
 testclient: $(CXXFILE)
-	g++ $(DEBUG) ./lib/libcommon.so ./funclib/dataQueue.cpp ./testing_client/$(CLIENT) \
+	g++ $(DEBUG) ./lib/libcommon.so ./funclib/dataQueue.cpp ./market_maker/$(CLIENT) \
 	$(CXX) $(CLIENT_TARGET)
 
 initParser:

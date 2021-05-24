@@ -23,8 +23,8 @@ This project is mainly produce to simulate a stock/future trading system
 
 Inertia Trader uses several manner to make sure the trading stability:
 
-- C++
-- MariaDB
+- C++11
+- MariaDB 10.5.9
 - node.js - evented I/O for the backend
 - Express - fast node.js network app framework [@tjholowaychuk]
 
@@ -70,3 +70,13 @@ Dockerised trading environment deploy
 ```sh
 docker-compose up -d
 ```
+
+Shut down whole docker stack
+
+```sh
+docker-compose down
+```
+
+## License
+
+[MIT](./LICENSE)

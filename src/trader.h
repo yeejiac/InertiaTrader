@@ -28,6 +28,7 @@ public:
     std::string nid; //網單編號
     int volumn; //委託量
     double orderPrice; //委託價
+    double execPrice; //成交價
     std::string symbol; //商品代號
     std::string userID; //委託人帳號
     long client_serialNum;

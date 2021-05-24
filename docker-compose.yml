@@ -5,7 +5,7 @@ services:
     # container_name: mydb_container
     build: 
       context: .
-      dockerfile: dockerfile.db
+      dockerfile: dockerfile.db_master
     container_name: database_master
     volumes:
       - type: bind
@@ -13,9 +13,6 @@ services:
         target: /etc/mysql/my.cnf
     ports:
       - "3306:3306"
-    # command: [
-    #   "mysql -u root -pAa1234 -P 3307 < ./sql/master_setting.sql",
-    # ]
     restart: always
     networks:
       vpcbr:
@@ -24,7 +21,7 @@ services:
   mysql-slave:
     build:
       context: .
-      dockerfile: dockerfile.db
+      dockerfile: dockerfile.db_slave
     container_name: mysql-slave
     ports:
       - '3308:3306'
@@ -42,7 +39,6 @@ services:
     command: [
       "--skip-log-bin",
       "--skip-log-slave-updates",
-      # "mysql -u root -pAa1234 -P 3307 < ./sql/slave_setting.sql",
     ]
     networks:
       vpcbr:
@@ -79,6 +75,7 @@ services:
 
   portainerservice:
     image: portainer/portainer
+    restart: always
     volumes:
       - portainer_data:/data
       - /var/run/docker.sock:/var/run/docker.sock

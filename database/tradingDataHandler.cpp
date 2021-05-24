@@ -196,10 +196,10 @@ bool TradingDataHandler::insertOrder(OrderData *od)
         
 }
 
-bool TradingDataHandler::insertReport(std::string nid, std::string orderPrice, std::string side, std::string client_serialNum)
+bool TradingDataHandler::insertReport(std::string nid, std::string orderPrice, std::string execPrice, std::string side, std::string client_serialNum)
 {
-    std::string value = nid + ","  + orderPrice +  "," + side + "," + client_serialNum;
-    std::string query = "INSERT INTO `stock`.`ExecReport` (`NID`, `ExecPrice`, `Side`, `Client_SerialNum`) VALUES (" + value + ");";
+    std::string value = nid + ","  + orderPrice + "," + execPrice +  "," + side + "," + client_serialNum;
+    std::string query = "INSERT INTO `stock`.`ExecReport` (`NID`, `OrderPrice`, `ExecPrice`, `Side`, `Client_SerialNum`) VALUES (" + value + ");";
     std::cout<<query<<std::endl;
     if (mysql_query(conn, query.c_str()) != 0)                   
     {    
