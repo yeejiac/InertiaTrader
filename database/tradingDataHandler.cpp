@@ -196,6 +196,25 @@ bool TradingDataHandler::insertOrder(OrderData *od)
         
 }
 
+bool TradingDataHandler::addTrader(UserData *ud)
+{
+    std::string value = ud->userID + ","  + ud->password + "," + std::to_string(ud->balance) + "," + std::to_string(ud->book_value);
+    std::string query = "INSERT INTO `stock`.`User` (`user`, `password`, `balance`, `book_value`) VALUES (" + value + ");";
+    std::cout<<query<<std::endl;
+    if (mysql_query(conn, query.c_str()) != 0)                   
+    {    
+        // fprintf(stderr, "%s\n", mysql_error(conn));     
+        std::string msg(mysql_error(conn));                                                                                                                                                   
+        logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure (User)" + msg);       
+        return false;                                                                  
+    }
+    else
+    {
+        logwrite->write(LogLevel::DEBUG, "(MariaDB) Add User Success");
+        return true;
+    }
+}
+
 bool TradingDataHandler::insertReport(std::string nid, std::string orderPrice, std::string execPrice, std::string side, std::string client_serialNum)
 {
     std::string value = nid + ","  + orderPrice + "," + execPrice +  "," + side + "," + client_serialNum;

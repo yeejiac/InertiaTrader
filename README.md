@@ -13,6 +13,7 @@ This project is mainly produce to simulate a stock/future trading system
 - Immediate settlement contract
 - Immediate account detail provide 
 - Databases replication
+- Add market maker to enhance the probablility of match up success
 
 ## Structure
 

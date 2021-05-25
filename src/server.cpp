@@ -223,6 +223,28 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 			std::cerr << e.what() << '\n';
 		}
 	}
+	else if(msg.substr(0,4) == "1238")
+	{
+		try
+		{
+			logwrite->write(LogLevel::DEBUG, "(Server) Add new user");
+			std::vector<std::string> res = split(msg, "|");
+			UserData *ud = new UserData;
+			ud->userID = res[1];
+			ud->password = res[2];
+			ud->balance = std::stod(res[3]);
+			ud->book_value = std::stod(res[4]);
+			if(db->addTrader(ud))
+			{
+				std::pair<std::string, UserData*> temp(res[1], std::move(ud));
+				userList.insert(temp);
+			}
+		}
+		catch(const std::exception& e)
+		{
+			std::cerr << e.what() << '\n';
+		}
+	}
 }
 
 bool Server::insertOrderToDB(OrderData *od)

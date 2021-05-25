@@ -17,6 +17,7 @@ public:
     std::vector<std::string> getTradingData();
     std::vector<std::string> getProductList();
     std::vector<OrderData*> getExistOrder();
+    bool addTrader(UserData *ud);
     bool insertOrder(OrderData *od);
     bool insertReport(std::string nid, std::string orderPrice, std::string execPrice, std::string side, std::string client_serialNum);
     bool updateOrderSituation(std::string nid, std::string status);
