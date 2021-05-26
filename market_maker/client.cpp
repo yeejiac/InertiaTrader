@@ -5,10 +5,10 @@ Client::Client(std::string initFilePath, std::string initchosen, std::string log
     logwrite = new Logwriter("CL", logPath);
 	ip = new InitParser(initFilePath, initchosen);
     allowConn();
-    std::thread sendtd(&Client::sendTypeMsg,this);
+    // std::thread sendtd(&Client::sendTypeMsg,this);
     std::thread recvtd(&Client::recvMsg,this);
     std::thread heatbeat(&Client::heartbeatSending, this);
-    sendtd.join();
+    // sendtd.join();
     heatbeat.join();
     recvtd.detach();
 };
@@ -151,7 +151,7 @@ void Client::recvMsg()
 
 int main()
 {
-    Client *cl = new Client("./doc/settings.ini", "socket", "./log/");
+    Client *cl = new Client("./doc/settings.ini", "TraderServer", "./log/");
 }
 
 

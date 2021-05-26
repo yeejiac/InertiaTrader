@@ -8,7 +8,7 @@ services:
       dockerfile: dockerfile.db_master
     container_name: database_master
     environment:
-      - TZ="Asia/Taipei"
+      - TZ=Asia/Taipei
     volumes:
       - type: bind
         source: ./doc/master.cnf
@@ -26,7 +26,7 @@ services:
       dockerfile: dockerfile.db_slave
     container_name: mysql-slave
     environment:
-      - TZ="Asia/Taipei"
+      - TZ=Asia/Taipei
     ports:
       - '3308:3306'
     volumes:
@@ -55,7 +55,7 @@ services:
       context: .
     restart: always
     environment:
-      - TZ="Asia/Taipei"
+      - TZ=Asia/Taipei
     ports:
       - "1203:1203"
     command: >
@@ -74,7 +74,7 @@ services:
   #     dockerfile: dockerfile.market_maker
   #   restart: always
   #   environment:
-  #     - TZ="Asia/Taipei"
+  #     - TZ=Asia/Taipei
   #   command: >
   #     /bin/bash -c "
   #     sleep 20;
