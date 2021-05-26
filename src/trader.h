@@ -78,18 +78,6 @@ private:
     int nid_sub2 = 1;
 };
 
-class Stock
-{
-public:
-    Stock();
-    ~Stock();
-private:
-    int stockNum_;
-    double priceNow_;
-    double priceMax_;
-    double priceMin_;
-};
-
 class RiskController
 {
 public:

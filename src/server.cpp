@@ -184,6 +184,17 @@ void Server::msgHandler(std::string msg)
 			case 89:
 				logwrite->write(LogLevel::DEBUG, "(Server) 收到刪單或改單電文");
 				dq_orderhandle->pushDTA(msg);
+			case 1233:
+				try
+				{
+					logwrite->write(LogLevel::DEBUG, "(Server) recv price asking");
+					std::vector<std::string> temp = split(msg, "|");
+					sendToClient(std::stoi(temp[2]), std::to_string(quotesList[temp[1]]->priceNow));
+				}
+				catch(const std::exception& e)
+				{
+					std::cerr << e.what() << '\n';
+				}
 			default:
 				break;
 		}
@@ -289,6 +300,26 @@ Connection* Server::getConnObject(int connNum)
 	Connection *cn = connStorage_[connNum];
 	std::cout<<cn->username<<std::endl;
 	return cn;
+}
+
+void Server::quoteUpdate(std::string stockNum, double execPrice)
+{
+	try
+	{
+		quotesList[stockNum]->priceNow = execPrice;
+		if(quotesList[stockNum]->priceMin>execPrice)
+		{
+			quotesList[stockNum]->priceMin = execPrice;
+		}
+		else if(quotesList[stockNum]->priceMax<execPrice)
+		{
+			quotesList[stockNum]->priceMax = execPrice;
+		}
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
 }
 
 // int main()
