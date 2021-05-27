@@ -5,10 +5,10 @@ Client::Client(std::string initFilePath, std::string initchosen, std::string log
     logwrite = new Logwriter("CL", logPath);
 	ip = new InitParser(initFilePath, initchosen);
     allowConn();
-    // std::thread sendtd(&Client::sendTypeMsg,this);
+    std::thread sendtd(&Client::sendTypeMsg,this);
     std::thread recvtd(&Client::recvMsg,this);
     std::thread heatbeat(&Client::heartbeatSending, this);
-    // sendtd.join();
+    sendtd.join();
     heatbeat.join();
     recvtd.detach();
 };
@@ -125,6 +125,8 @@ void Client::heartbeatSending()
     while(!exit_flag_)
     {
         sendMsg("<3&");
+        if(loginflag)
+            sendMsg("1233|KKC|&");
         std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 }
@@ -138,6 +140,7 @@ void Client::recvMsg()
         {
             buffer_[recvSignal_] = '\0';
             logwrite->write(LogLevel::DEBUG, "(Client) recv " + std::string(buffer_));
+            msgHandler(std::string(buffer_));
         }
         else
         {
@@ -155,6 +158,35 @@ void Client::startTradingProcess()
     {
         
     }
+}
+
+void Client::msgHandler(std::string msg)
+{
+    if(msg.substr(0,2) == "<3")
+		return;
+    try
+    {
+        std::vector<std::string> temp = split(msg, "|");
+        switch (std::stoi(temp[0]))
+        {
+        case 1233:
+            priceNow = std::stod(temp[1]);
+            logwrite->write(LogLevel::ERROR, "(Client) update Price Now" + std::to_string(priceNow));
+            break;
+        case 1234:
+            loginflag = true;
+            logwrite->write(LogLevel::ERROR, "(Client) Login success");
+        default:
+            break;
+        }
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        logwrite->write(LogLevel::ERROR, "(Client) Handle msg failed");
+    }
+    
+    
 }
 
 int main()

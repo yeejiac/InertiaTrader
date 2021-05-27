@@ -17,6 +17,7 @@
 #include "../funclib/dataQueue.h"
 #include "../funclib/initParser.h"
 #include "../funclib/logwriter.h"
+#include "../funclib/simplefunc.h"
 
 #define buffer 1024
 
@@ -42,7 +43,7 @@ public:
     int connCalculate = 0;
     double priceNow;
     int orderLimitation = 10;
-	
+	bool loginflag = false;
 private:
     std::string configSelect_;
     bool exit_flag_ = false;

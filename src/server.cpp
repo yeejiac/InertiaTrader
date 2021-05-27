@@ -227,6 +227,7 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 				{
 					logwrite->write(LogLevel::DEBUG, "(Server) login success");
 					cn->sendto("login|" + std::to_string(rand()%100000) + "\n");
+					cn->sendto("1234|" + std::to_string(rand()%100000) + "\n");
 					cn->setloginFlag(true);
 					cn->username = res[1];
 				}	
