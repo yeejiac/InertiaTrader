@@ -149,6 +149,14 @@ void Client::recvMsg()
     }
 }
 
+void Client::startTradingProcess()
+{
+    while(!exit_flag_)
+    {
+        
+    }
+}
+
 int main()
 {
     Client *cl = new Client("./doc/settings.ini", "TraderServer", "./log/");

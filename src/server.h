@@ -49,6 +49,7 @@ public:
 	Connection* getConnObject(int connNum);
 	Logwriter *logwrite;
 	OrderData *od;
+	Stock *st;
 	DataQueue *dq = new DataQueue(100);
 	DataQueue *dq_orderhandle = new DataQueue(100);
 	TradingDataHandler *db;
@@ -73,6 +74,7 @@ private:
 	std::map<int, Connection*> connStorage_;
 	
 };
+
 
 
 

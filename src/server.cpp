@@ -69,6 +69,13 @@ void Server::essentialData_initialise()
 		userList = db->getUserData();
 	else
 		logwrite->write(LogLevel::ERROR, "(Server) Connect to DB failed");
+
+	logwrite->write(LogLevel::ERROR, "(Server) Load price status");
+	st = new Stock;
+	st->priceMax = 60;
+	st->priceMin = 60;
+	st->priceNow = 60;
+	quotesList.insert(std::pair<std::string, Stock*>("KKC", st));
 }
 
 void Server::acceptConn()
@@ -189,7 +196,7 @@ void Server::msgHandler(std::string msg)
 				{
 					logwrite->write(LogLevel::DEBUG, "(Server) recv price asking");
 					std::vector<std::string> temp = split(msg, "|");
-					sendToClient(std::stoi(temp[2]), std::to_string(quotesList[temp[1]]->priceNow));
+					sendToClient(std::stoi(temp[2]), "1233|"+std::to_string(quotesList[temp[1]]->priceNow)+"|&");
 				}
 				catch(const std::exception& e)
 				{

@@ -202,7 +202,7 @@ void Trader::matchup()
                 {
                     buyside_[j]->execPrice = sellside_[i]->orderPrice;
                     sellside_[i]->execPrice = sellside_[i]->orderPrice;
-                    // sr->quoteUpdate("KKC", sellside_[i]->execPrice);
+                    sr->quoteUpdate("KKC", sellside_[i]->execPrice);
                     std::shared_ptr<Order*> a = std::make_shared<Order*> (std::move(buyside_[j]));
                     reportList_.push_back(a);
                     std::shared_ptr<Order*> b = std::make_shared<Order*> (std::move(sellside_[i]));

@@ -104,6 +104,12 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "9000:9000"
+  
+  cadvisor:
+    image: google/cadvisor:lastet
+    restart: always
+    ports: 
+      - "80:8080"
       
 volumes:
   portainer_data:

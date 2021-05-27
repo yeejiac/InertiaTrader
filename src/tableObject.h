@@ -2,11 +2,8 @@
 #define TABLEOBJECT_H_
 #include <iostream>
 
-class Stock
+struct Stock
 {
-public:
-    Stock();
-    ~Stock();
     int stockNum;
     double priceNow;
     double priceMax;

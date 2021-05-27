@@ -25,6 +25,7 @@ class Client
 {
 public:
     Client(std::string initFilePath, std::string initchosen, std::string logPath);
+    void startTradingProcess();
     void socketini();
     void allowConn();
     void setConnStatus(bool stat);
@@ -34,10 +35,13 @@ public:
     void heartbeatSending();
     void recvMsg();
     void reConnect();
+    void msgHandler(std::string msg);
     Logwriter *logwrite;
     InitParser *ip;
 	DataQueue *dq;
     int connCalculate = 0;
+    double priceNow;
+    int orderLimitation = 10;
 	
 private:
     std::string configSelect_;
