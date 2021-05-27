@@ -106,7 +106,7 @@ services:
       - "9000:9000"
   
   cadvisor:
-    image: google/cadvisor:lastet
+    image: google/cadvisor
     restart: always
     ports: 
       - "80:8080"
