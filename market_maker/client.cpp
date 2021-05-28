@@ -5,12 +5,15 @@ Client::Client(std::string initFilePath, std::string initchosen, std::string log
     logwrite = new Logwriter("CL", logPath);
 	ip = new InitParser(initFilePath, initchosen);
     allowConn();
-    std::thread sendtd(&Client::sendTypeMsg,this);
+    // std::thread sendtd(&Client::sendTypeMsg,this);
     std::thread recvtd(&Client::recvMsg,this);
     std::thread heatbeat(&Client::heartbeatSending, this);
-    sendtd.join();
+    std::thread marketmaker(&Client::startTradingProcess, this);
+    // sendtd.join();
     heatbeat.join();
     recvtd.detach();
+    marketmaker.detach();
+    
 };
 
 void Client::setConnStatus(bool connStatus)
@@ -105,8 +108,8 @@ void Client::sendMsg(std::string str)
     catch(...)
     {
         logwrite->write(LogLevel::ERROR, "(Client) send failed ");
-        std::unique_lock<std::mutex> lck2(mutex_);
-        cv_.wait(lck2);
+        // std::unique_lock<std::mutex> lck2(mutex_);
+        // cv_.wait(lck2);
     }
 }
 
@@ -127,6 +130,8 @@ void Client::heartbeatSending()
         sendMsg("<3&");
         if(loginflag)
             sendMsg("1233|KKC|&");
+        else
+            sendMsg("1234|0324027|123|&");
         std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 }
@@ -156,7 +161,26 @@ void Client::startTradingProcess()
 {
     while(!exit_flag_)
     {
-        
+        try
+        {
+            if(orderNum<orderLimitation)
+            {
+                sendMsg("87|313542|60|1|1|1|KKC|&");
+                sendMsg("87|313542|64|2|1|1|KKC|&");
+            }
+            else
+            {
+                std::this_thread::sleep_for(std::chrono::seconds(10));
+            }
+            
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+        std::unique_lock<std::mutex> lk1(mutex_);
+        cv_.wait(lk1, [this]{return inventoryNum<inventoryLimit;});
+        std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 }
 
@@ -171,12 +195,23 @@ void Client::msgHandler(std::string msg)
         {
         case 1233:
             priceNow = std::stod(temp[1]);
-            logwrite->write(LogLevel::ERROR, "(Client) update Price Now" + std::to_string(priceNow));
+            logwrite->write(LogLevel::DEBUG, "(Client) update Price Now" + std::to_string(priceNow));
             break;
         case 1234:
             loginflag = true;
-            logwrite->write(LogLevel::ERROR, "(Client) Login success");
+            logwrite->write(LogLevel::DEBUG, "(Client) Login success");
+            break;
         default:
+            if(temp[1] == "success")
+            {
+                orderNum++;
+                cv_.notify_all();
+            }
+            else if(temp[1] == "exec")
+            {
+                inventoryNum++;
+                cv_.notify_all();
+            }
             break;
         }
     }

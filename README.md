@@ -103,7 +103,9 @@ docker-compose down
 /clicked?sideselect={side}&orderprice={orderprice}
 ```
 
+## Contributors
 
+[Contributors](./CONTRIBUTORS.md)
 
 ## License
 

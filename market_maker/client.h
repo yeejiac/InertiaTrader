@@ -42,8 +42,11 @@ public:
 	DataQueue *dq;
     int connCalculate = 0;
     double priceNow;
+    int orderNum = 0;
     int orderLimitation = 10;
 	bool loginflag = false;
+    int inventoryLimit = 10;
+    int inventoryNum = 0;
 private:
     std::string configSelect_;
     bool exit_flag_ = false;
