@@ -49,7 +49,7 @@ Instructions on how to use them in your own application are linked below.
 
 | Plugin | README |
 | ------ | ------ |
-| GitHub | [InertiaTrader/README.md][PlGh] |
+| GitHub | [README](./UML.svg)|
 
 &nbsp;
 
