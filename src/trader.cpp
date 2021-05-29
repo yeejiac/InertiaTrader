@@ -12,6 +12,7 @@ void RiskController::verify(Order *order)
     }
     else
     {
+        
         order->setStatus(OrderStatus::VERIFIED);
     }
     // Report *rpt = new Report(order);
@@ -62,6 +63,11 @@ double Order::getPrice()
     return price_;
 }
 
+bool Order::operator<(const Order &p)
+{
+    return p.orderPrice>orderPrice || p.orderPrice == orderPrice;
+}
+
 
 
 void Report::setReportType(ReportType rpt)
@@ -110,7 +116,16 @@ Trader::Trader(bool mode):testmode(mode)
     logwrite = new Logwriter("TD", "./log/");
     logwrite->write(LogLevel::DEBUG, "Virtual trader initialise");
     essentialData_initialise();
+    loadExistOrder();
     setTraderStatus(true);
+}
+
+long Trader::generateNid()
+{
+    ulong unsignedKey = (((ulong) nid_sub1) << 32) | nid_sub2;
+    long key = (long) unsignedKey;
+    nid_sub2++;
+    return key;
 }
 
 void Trader::setTraderStatus(bool status)
@@ -135,35 +150,40 @@ void Trader::essentialData_initialise()
 		logwrite->write(LogLevel::ERROR, "(Trader) Initial failed");
 }
 
-// void Trader::rawStrHandle(std::string rawStr)
-// {
-//     char strdelimiter = '&';
-//     size_t pos = 0;
-//     std::string token;
-//     while ((pos = rawStr.find(strdelimiter)) != std::string::npos) 
-//     {
-//         token = rawStr.substr(0, pos);
-//         std::cout << token << std::endl;
-//         orderDataInsert(token);
-//         rawStr.erase(0, pos + 1);
-//     }
-//     orderDataInsert(rawStr);
-// }
+void Trader::loadExistOrder()
+{
+    logwrite->write(LogLevel::DEBUG, "(Trader) start load exist order");
+    std::vector<OrderData*> existOrder = db->getExistOrder();
+    logwrite->write(LogLevel::DEBUG, "(Trader) exist order volume : " + existOrder.size());
+    for(int i = 0; i<existOrder.size(); i++)
+    {
+        Order *od = new Order();
+        od->nid = existOrder[i]->nid;
+        od->orderPrice = existOrder[i]->orderPrice;
+        od->side = existOrder[i]->side;
+        od->client_serialNum = existOrder[i]->client_serialnum;
+        if(existOrder[i]->side == 1)
+            buyside_.push_back(std::move(od));
+        else
+            sellside_.push_back(std::move(od));
+    }
+    logwrite->write(LogLevel::DEBUG, "(Trader) load exist order success");
+}
 
 void Trader::orderDataInsert(Order *order)
 {
     //New Order object and insert data
     if(order->getside() == Side::BUY)
     {
-        buyside_.push_back(order);
+        rawBuyside_.insert(order);
         logwrite->write(LogLevel::DEBUG, "(Trader) Get Buyside Order");
     }
     else
     {
-        sellside_.push_back(order);
+        rawSellside_.insert(order);
         logwrite->write(LogLevel::DEBUG, "(Trader) Get SellSide Order");
     }
-    cv_m.unlock();    
+    cv_m.unlock();
 }
 
 void Trader::matchup()
@@ -173,40 +193,48 @@ void Trader::matchup()
     cv_.wait(lk1, [this]{return sr->getconnStatus();});
     while(getTraderStatus())
     {
-        cv_m.lock();
+        std::lock_guard<std::mutex> lck(cv_m);
         logwrite->write(LogLevel::DEBUG, "(Trader) Do Match up process");
-        int num = (sideFlag==Side::BUY?sellside_.size():buyside_.size());
-        for(int i = 0; i <num;i++) 
+        int num = rawSellside_.size();
+        int num2 = rawBuyside_.size();
+        int i = 0;
+        while(i <num&&num2>0&&num>0) 
         {
-            if(sideFlag==Side::BUY)
+            logwrite->write(LogLevel::DEBUG, "(Trader) Execute Match up");
+            std::multiset<Order*>::const_iterator  it;
+            for(it = rawBuyside_.begin(); it!=rawBuyside_.end();++it)
             {
-                if(buyside_.back()->orderPrice == sellside_[i]->orderPrice)
+                Order *odb = *it;
+                auto it2 = std::prev(rawSellside_.end());
+                Order *ods = *it2;
+                if(od->orderPrice >= ods->orderPrice)
                 {
-                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Buy)");
-                    sendExecReport(buyside_.back());
-                    sendExecReport(sellside_[i]);
-
-                    buyside_.pop_back();
-                    sellside_.erase(sellside_.begin() + i);
-                    i = num;
-                    logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Buy)");
+                    odb->execPrice = ods->orderPrice;
+                    ods->execPrice = ods->orderPrice;
+                    sr->quoteUpdate("KKC", ods->orderPrice);
+                    std::shared_ptr<Order*> a = std::make_shared<Order*> (std::move(odb));
+                    reportList_.push_back(a);
+                    std::shared_ptr<Order*> b = std::make_shared<Order*> (std::move(ods));
+                    reportList_.push_back(b);
+                    rawSellside_.erase(std::prev(rawSellside_.end()));
+                    it = rawBuyside_.erase(it);
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
+                    break;
                 }
             }
-            else
-            {
-                if(sellside_.back()->orderPrice == buyside_[i]->orderPrice)
-                {
-                    logwrite->write(LogLevel::DEBUG, "(Trader) Match up success(Sell)");
-                    sendExecReport(buyside_[i]);
-                    sendExecReport(sellside_.back());
-                    sellside_.pop_back();
-                    buyside_.erase(sellside_.begin() + i);
-                    i = num;
-                    logwrite->write(LogLevel::DEBUG, "(Trader) Finish handle execute report(Sell)");
-                }
-            }
+            break;
         }
         logwrite->write(LogLevel::DEBUG, "(Trader) Match up process done");
+        if(&num2>0||num>0)
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+        else
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        // std::multiset<Order*>::const_iterator  it;
+        // for(it = rawBuyside_.begin(); it!=rawBuyside_.end();++it)
+        // {
+        //     Order *od = *it;
+        //     std::cout<<od->orderPrice<<std::endl;
+        // }
     }
 }
 
@@ -230,22 +258,38 @@ void Trader::getOrder()
             od->side = std::stoi(res[3]);
             od->symbol = res[6];
             od->userID = "0324027";
+            // std::cout<<res[7]<<std::endl;
             od->connId = std::stoi(res[7]);
             od->setSituation(OrderSituation::NORMAL);
             rc->verify(od);
             if(od->getStatus() == OrderStatus::VERIFIED)
             {
-                sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
-                sideFlag = Side(std::stoi(res[3]));
-                orderDataInsert(od);
-                logwrite->write(LogLevel::DEBUG, "(Trader) Input data to db");
-                odt = new OrderData;
-                odt->nid = od->nid;
-                odt->orderPrice = od->orderPrice;
-                odt->symbol = od->symbol;
-                odt->userID = od->userID;
-                odt->side = static_cast<int>(od->getside());
-                sr->insertOrderToDB(odt);
+                Connection *cn = sr->getConnObject(od->connId);
+                std::map<std::string, UserData*>::iterator it = sr->userList.find(cn->username);
+                if(it->second->balance>od->orderPrice*1000)
+                {
+                    od->client_serialNum = generateNid();
+                    sideFlag = Side(std::stoi(res[3]));
+                    orderDataInsert(od);
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Input data to db");
+                    odt = new OrderData;
+                    odt->nid = od->nid;
+                    odt->orderPrice = od->orderPrice;
+                    odt->symbol = od->symbol;
+                    odt->userID = od->userID;
+                    odt->side = static_cast<int>(od->getside());
+                    odt->client_serialnum = od->client_serialNum;
+                    // std::cout<<res[7]<<std::endl;
+                    if(sr->insertOrderToDB(odt))
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
+                    else
+                        sr->sendToClient(std::stoi(res[7]), res[1] + "|failed, repeat nid");
+                }
+                else
+                {
+                    logwrite->write(LogLevel::DEBUG, "(Trader) Insufficient balance");
+                    sr->sendToClient(std::stoi(res[7]), res[1] + "|failed, Insufficient balance");
+                }    
             }
             else
             {
@@ -253,6 +297,8 @@ void Trader::getOrder()
                 sr->sendToClient(std::stoi(res[7]), res[1] + "|failed");
             }
         }
+        else
+            std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 }
 
@@ -346,6 +392,8 @@ void Trader::getCancelOrder()
                 }
             }
         }
+        else
+            std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 
 }
@@ -353,9 +401,25 @@ void Trader::getCancelOrder()
 void Trader::sendExecReport(Order *order)
 {
     sr->sendToClient(order->connId, order->nid + "|OrderExec");
-    if(db->insertReport(order->nid, std::to_string(order->orderPrice), order->getside()==Side::BUY?"1":"2"))
+    if(db->insertReport(order->nid, std::to_string(order->orderPrice), std::to_string(order->execPrice),order->getside()==Side::BUY?"1":"2", std::to_string(order->client_serialNum)))
         logwrite->write(LogLevel::DEBUG, "(Trader) Execution report send");
     db->updateOrderSituation(order->nid, "2");
+}
+
+void Trader::generateExecReport()
+{
+    while(getTraderStatus())
+    {
+        if(reportList_.size()>0)
+        {
+            logwrite->write(LogLevel::DEBUG, "(Trader) Handle Exec Order");
+            std::shared_ptr<Order*> p = reportList_.back();
+            sendExecReport(*p.get());
+            p.reset();
+            reportList_.pop_back();
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+    }
 }
 
 void Trader::endTransaction()
@@ -377,9 +441,11 @@ void Trader::startTransaction()
         std::thread orderReceive(&Trader::getOrder, this);
         std::thread cancelorderReceive(&Trader::getCancelOrder, this);
         std::thread matchup(&Trader::matchup, this);
+        std::thread handleExecReport(&Trader::generateExecReport, this);
         cancelorderReceive.detach();
         matchup.detach();
         orderReceive.detach();
+        handleExecReport.detach();
     }
     else
     {

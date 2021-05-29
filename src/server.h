@@ -21,6 +21,7 @@
 #include "../funclib/logwriter.h"
 #include "../funclib/simplefunc.h"
 #include "../database/tradingDataHandler.h"
+#include "tableObject.h"
 #include "connection.h"
 
 
@@ -41,19 +42,22 @@ public:
 	void setconnStatus(bool connStatus);
 	bool getconnStatus();
 	void freeEmptysocket();
-	void insertOrderToDB(OrderData *od);
+	bool insertOrderToDB(OrderData *od);
 	void insertReportToDB(std::string nid, std::string orderPrice, std::string side);
 	void loginMsgHandle(std::string msg, Connection *cn);
-	void getConnObject(Connection *cn, int connNum);
+	void quoteUpdate(std::string stockNum, double execPrice);
+	Connection* getConnObject(int connNum);
 	Logwriter *logwrite;
 	OrderData *od;
+	Stock *st;
 	DataQueue *dq = new DataQueue(100);
 	DataQueue *dq_orderhandle = new DataQueue(100);
 	TradingDataHandler *db;
 	std::string initFilePath;
 	std::string initchosen;
 	std::string logPath;
-	std::map<std::string, std::string> userList;
+	std::map<std::string, UserData*> userList;
+	std::map<std::string, Stock*> quotesList; 
 private:
 	int listenfd_;
 	int connfd_;
@@ -70,6 +74,7 @@ private:
 	std::map<int, Connection*> connStorage_;
 	
 };
+
 
 
 

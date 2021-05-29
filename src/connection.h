@@ -35,6 +35,7 @@ public:
     bool getloginstatus();
     int getConnectionID();
     Logwriter *logwrite;
+    std::string username;
     
 private:
     int connection_socket_;

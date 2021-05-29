@@ -69,6 +69,13 @@ void Server::essentialData_initialise()
 		userList = db->getUserData();
 	else
 		logwrite->write(LogLevel::ERROR, "(Server) Connect to DB failed");
+
+	logwrite->write(LogLevel::ERROR, "(Server) Load price status");
+	st = new Stock;
+	st->priceMax = 60;
+	st->priceMin = 60;
+	st->priceNow = 60;
+	quotesList.insert(std::pair<std::string, Stock*>("KKC", st));
 }
 
 void Server::acceptConn()
@@ -107,7 +114,7 @@ void Server::heartbeat(Connection *cn)
 	while(connStatus_)
 	{
 		std::string hearbeatString = "<3&";
-		cn->sendto(hearbeatString);
+		cn->sendto(hearbeatString + "\n");
 		logwrite->write(LogLevel::DEBUG, "Send heartbeat");
 		if(!cn->getRecvStatus())
 		{
@@ -127,6 +134,7 @@ void Server::msgRecv(Connection *cn)
 	{
 		bool connStatus = true;
 		connStatus = cn->recvfrom(recvStr);
+		logwrite->write(LogLevel::DEBUG, "Recv row msg : " + recvStr);
 		if(connStatus)
 		{
 			if(tempStr!=""&&recvStr!="<3&")
@@ -134,7 +142,6 @@ void Server::msgRecv(Connection *cn)
 				recvStr = tempStr + recvStr;
 				tempStr = "";
 			}
-
 			if(recvStr.back()!='&')
 			{
 				std::size_t found = recvStr.find_last_of('&');
@@ -148,16 +155,21 @@ void Server::msgRecv(Connection *cn)
 			}
 			logwrite->write(LogLevel::DEBUG, " Server Receive : " + subStr);
 			if(cn->getloginstatus())
-				msgHandler(subStr + "|" + std::to_string(cn->getConnectionID()) + "|");
+			{
+				std::vector<std::string> tempVec = split(subStr, "&");
+				for(int i = 0; i < tempVec.size(); i++)
+				{
+					msgHandler(tempVec[i] + "|" + std::to_string(cn->getConnectionID()) + "|");
+				}
+			}
 			else
 				loginMsgHandle(subStr, cn);
 		}
 		else
 		{
-			st_.notify_one();
 			freeEmptysocket();
+			break;
 		}
-		std::this_thread::sleep_for(std::chrono::seconds(2));
 	}
 }
 
@@ -172,15 +184,26 @@ void Server::msgHandler(std::string msg)
 		{
 			case 87:
 				logwrite->write(LogLevel::DEBUG, "(Server) 收到下單電文");
+				//進行基本委託檢核(帳戶餘額檢查)
 				dq->pushDTA(msg);
 				break;
 			case 88:
 			case 89:
 				logwrite->write(LogLevel::DEBUG, "(Server) 收到刪單或改單電文");
 				dq_orderhandle->pushDTA(msg);
+			case 1233:
+				try
+				{
+					logwrite->write(LogLevel::DEBUG, "(Server) recv price asking");
+					std::vector<std::string> temp = split(msg, "|");
+					sendToClient(std::stoi(temp[2]), "1233|"+std::to_string(quotesList[temp[1]]->priceNow)+"|&");
+				}
+				catch(const std::exception& e)
+				{
+					std::cerr << e.what() << '\n';
+				}
 			default:
 				break;
-			
 		}
 	}
 	catch(...)
@@ -199,12 +222,14 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 		{
 			if(userList.size()>0)
 			{
-				std::map<std::string, std::string>::iterator it = userList.find(res[1]);
-				if(it->second == res[2])
+				std::map<std::string, UserData*>::iterator it = userList.find(res[1]);
+				if(it->second->password == res[2])
 				{
 					logwrite->write(LogLevel::DEBUG, "(Server) login success");
-					cn->sendto(std::to_string(rand()%1000));
+					cn->sendto("login|" + std::to_string(rand()%100000) + "\n");
+					cn->sendto("1234|" + std::to_string(rand()%100000) + "\n");
 					cn->setloginFlag(true);
+					cn->username = res[1];
 				}	
 			}
 			else
@@ -217,14 +242,43 @@ void Server::loginMsgHandle(std::string msg, Connection *cn)
 			std::cerr << e.what() << '\n';
 		}
 	}
+	else if(msg.substr(0,4) == "1238")
+	{
+		try
+		{
+			logwrite->write(LogLevel::DEBUG, "(Server) Add new user");
+			std::vector<std::string> res = split(msg, "|");
+			UserData *ud = new UserData;
+			ud->userID = res[1];
+			ud->password = res[2];
+			ud->balance = std::stod(res[3]);
+			ud->book_value = std::stod(res[4]);
+			if(db->addTrader(ud))
+			{
+				std::pair<std::string, UserData*> temp(res[1], std::move(ud));
+				userList.insert(temp);
+			}
+		}
+		catch(const std::exception& e)
+		{
+			std::cerr << e.what() << '\n';
+		}
+	}
 }
 
-void Server::insertOrderToDB(OrderData *od)
+bool Server::insertOrderToDB(OrderData *od)
 {
 	if(db->insertOrder(od))
+	{
 		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db success");
+		return true;
+	}
 	else
+	{
 		logwrite->write(LogLevel::DEBUG, "(Server) Sent to db failed");
+		return false;
+	}
+		
 }
 
 void Server::freeEmptysocket()
@@ -246,7 +300,34 @@ void Server::freeEmptysocket()
 void Server::sendToClient(int connNum, std::string msg)
 {
 	logwrite->write(LogLevel::DEBUG, "(Server) Send to client " + std::to_string(connNum));
-	connStorage_[connNum]->sendto(msg);
+	connStorage_[connNum]->sendto(msg + "\n");
+}
+
+Connection* Server::getConnObject(int connNum)
+{
+	Connection *cn = connStorage_[connNum];
+	// std::cout<<cn->username<<std::endl;
+	return cn;
+}
+
+void Server::quoteUpdate(std::string stockNum, double execPrice)
+{
+	try
+	{
+		quotesList[stockNum]->priceNow = execPrice;
+		if(quotesList[stockNum]->priceMin>execPrice)
+		{
+			quotesList[stockNum]->priceMin = execPrice;
+		}
+		else if(quotesList[stockNum]->priceMax<execPrice)
+		{
+			quotesList[stockNum]->priceMax = execPrice;
+		}
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
 }
 
 // int main()

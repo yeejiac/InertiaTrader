@@ -32,8 +32,8 @@ main: $(CXXFILE)
 	$(SRC)connection.cpp $(DATABASE)mariaDBHandler.cpp $(DATABASE)tradingDataHandler.cpp $(SRC)$(SERVER) $(SRC)$(TRADER) \
 	$(CXX) $(TRADER_SERVER)
 
-testclient: $(CXXFILE)
-	g++ $(DEBUG) ./lib/libcommon.so ./funclib/dataQueue.cpp ./testing_client/$(CLIENT) \
+marketmaker: $(CXXFILE)
+	g++ $(DEBUG) ./lib/libcommon.so ./funclib/dataQueue.cpp ./market_maker/$(CLIENT) \
 	$(CXX) $(CLIENT_TARGET)
 
 initParser:

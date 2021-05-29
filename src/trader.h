@@ -28,8 +28,10 @@ public:
     std::string nid; //網單編號
     int volumn; //委託量
     double orderPrice; //委託價
+    double execPrice; //成交價
     std::string symbol; //商品代號
     std::string userID; //委託人帳號
+    long client_serialNum;
     long getNid();
     void setNid();
     void setside(Side side);
@@ -42,6 +44,7 @@ public:
     OrderSituation getSituation();
     int connId;
     int side;
+    bool operator<(const Order &p);
 private:
     int stockNum_;
     long nid_;
@@ -76,18 +79,6 @@ private:
     int nid_sub2 = 1;
 };
 
-class Stock
-{
-public:
-    Stock();
-    ~Stock();
-private:
-    int stockNum_;
-    double priceNow_;
-    double priceMax_;
-    double priceMin_;
-};
-
 class RiskController
 {
 public:
@@ -107,6 +98,7 @@ public:
     Trader(bool mode);
     ~Trader();
     void essentialData_initialise();
+    void loadExistOrder(); //Disconnect mechanism
     void setTraderStatus(bool status);
     bool getTraderStatus();
     void rawStrHandle(std::string rawStr);
@@ -116,9 +108,11 @@ public:
     void getOrder();
     void getCancelOrder();
     void sendExecReport(Order *order);
+    void generateExecReport();
     int checkDataQueue();
     void startTransaction();
     void endTransaction();
+    long generateNid();
     Server *sr;
     Order *od;
     OrderData *odt;
@@ -130,12 +124,14 @@ public:
     bool serverstatus = false;
     bool testmode;
     Side sideFlag;
+    int nid_sub1 = rand() % INT32_MAX;
+    int nid_sub2 = 1;
 private:
     std::vector<Order*> buyside_;
     std::vector<Order*> sellside_;
-    std::vector<Report*> reportList_;
-    // std::multiset<Order*> rawBuyside_;
-    // std::multiset<Order*> rawSellside_;
+    std::vector<std::shared_ptr<Order*>> reportList_;
+    std::multiset<Order*> rawBuyside_;
+    std::multiset<Order*> rawSellside_;
     bool traderstatus_;
     std::condition_variable cv_;
     std::mutex cv_m;

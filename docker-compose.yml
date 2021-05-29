@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 version: '2'
 services:
   database:
@@ -11,11 +12,72 @@ services:
   trader:
     image: inertiatrader
     container_name: inertiatrader
+=======
+version: '3.7'
+services:
+  database_master:
+    # image: mydb
+    # container_name: mydb_container
+    build: 
+      context: .
+      dockerfile: dockerfile.db_master
+    container_name: database_master
+    environment:
+      - TZ=Asia/Taipei
+    volumes:
+      - type: bind
+        source: ./doc/master.cnf
+        target: /etc/mysql/my.cnf
+    ports:
+      - "3306:3306"
+    restart: always
+    networks:
+      vpcbr:
+        ipv4_address: 172.28.0.3
+
+  mysql-slave:
+    build:
+      context: .
+      dockerfile: dockerfile.db_slave
+    container_name: mysql-slave
+    environment:
+      - TZ=Asia/Taipei
+    ports:
+      - '3308:3306'
+    volumes:
+      - type: bind
+        source: ./doc/slave.cnf
+        target: /etc/mysql/conf.d/slave.cnf
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_REPLICATION_MODE=slave
+      - MYSQL_REPLICATION_USER=slave_user
+      - MYSQL_REPLICATION_PASSWORD=password
+    depends_on:
+      - database_master
+    command: [
+      "--skip-log-bin",
+      "--skip-log-slave-updates",
+    ]
+    networks:
+      vpcbr:
+        ipv4_address: 172.28.0.4
+
+  inertiatrader:
+    # image: inertiatrader
+    # container_name: inertiatrader
+    build: 
+      context: .
+    restart: always
+    environment:
+      - TZ=Asia/Taipei
+>>>>>>> devel
     ports:
       - "1203:1203"
     command: >
       /bin/bash -c "
       sleep 15;
+<<<<<<< HEAD
       ./trader.out test;
       docker stop mydb_container;"
     depends_on:
@@ -23,6 +85,60 @@ services:
     networks:
       vpcbr:
         ipv4_address: 172.28.0.2
+=======
+      ./trader.out devel;"
+    depends_on:
+      - database_master
+    networks:
+      vpcbr:
+        ipv4_address: 172.28.0.2
+  
+  market_maker:
+    build:
+      context: .
+      dockerfile: dockerfile.market_maker
+    restart: always
+    environment:
+      - TZ=Asia/Taipei
+    command: >
+      /bin/bash -c "
+      sleep 20;
+      ./client.out;"
+    depends_on:
+      - inertiatrader
+    networks:
+      vpcbr:
+        ipv4_address: 172.28.0.6
+
+  webservice:
+    image: yeejiac/webservice:latest
+    depends_on:
+      - inertiatrader
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      vpcbr:
+        ipv4_address: 172.28.0.5
+
+  portainerservice:
+    image: portainer/portainer
+    restart: always
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9000:9000"
+  
+  cadvisor:
+    image: google/cadvisor
+    restart: always
+    ports: 
+      - "80:8080"
+      
+volumes:
+  portainer_data:
+>>>>>>> devel
 
 networks:
   vpcbr:
@@ -30,4 +146,3 @@ networks:
     ipam:
       config:
         - subnet: 172.28.0.0/16
-          gateway: 172.28.0.1

@@ -12,6 +12,26 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
 
+-- 傾印 account_Info 的資料庫結構
+CREATE DATABASE IF NOT EXISTS `account_Info` /*!40100 DEFAULT CHARACTER SET latin1 */;
+USE `account_Info`;
+
+-- 傾印  資料表 account_Info.Inventory 結構
+CREATE TABLE IF NOT EXISTS `Inventory` (
+  `username` int(11) NOT NULL,
+  `side` int(11) NOT NULL,
+  `price` double NOT NULL DEFAULT '0',
+  `product` varchar(50) NOT NULL DEFAULT '',
+  `datetime` varchar(50) NOT NULL DEFAULT '',
+  `NID` float NOT NULL,
+  PRIMARY KEY (`username`,`NID`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- 正在傾印表格  account_Info.Inventory 的資料：~0 rows (近似值)
+/*!40000 ALTER TABLE `Inventory` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Inventory` ENABLE KEYS */;
+
+
 -- 傾印 stock 的資料庫結構
 CREATE DATABASE IF NOT EXISTS `stock` /*!40100 DEFAULT CHARACTER SET latin1 */;
 USE `stock`;
@@ -19,8 +39,10 @@ USE `stock`;
 -- 傾印  資料表 stock.ExecReport 結構
 CREATE TABLE IF NOT EXISTS `ExecReport` (
   `NID` float NOT NULL,
+  `OrderPrice` double NOT NULL,
   `ExecPrice` double(22,0) NOT NULL,
   `Side` int(1) NOT NULL,
+  `Client_SerialNum` bigint(20) NOT NULL DEFAULT '0',
   PRIMARY KEY (`NID`,`Side`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -52,7 +74,8 @@ CREATE TABLE IF NOT EXISTS `Order` (
   `UserID` float NOT NULL,
   `Side` int(1) NOT NULL,
   `Order_situation` int(1) NOT NULL COMMENT '1 = 委託中，2 = 成交, 3 = 刪單',
-  PRIMARY KEY (`NID`)
+  `Client_SerialNum` bigint(20) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`NID`,`Client_SerialNum`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- 正在傾印表格  stock.Order 的資料：~0 rows (近似值)
@@ -77,14 +100,33 @@ INSERT INTO `ProductList` (`product_id`, `transaction_flag`, `note`) VALUES
 CREATE TABLE IF NOT EXISTS `User` (
   `user` varchar(50) NOT NULL,
   `password` varchar(50) NOT NULL,
+  `balance` double(22,0) NOT NULL COMMENT '投入資產價值(單位KKC)',
+  `book_value` double NOT NULL COMMENT '帳面價值',
   PRIMARY KEY (`user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- 正在傾印表格  stock.User 的資料：~0 rows (近似值)
+-- 正在傾印表格  stock.User 的資料：~1 rows (近似值)
 /*!40000 ALTER TABLE `User` DISABLE KEYS */;
-INSERT INTO `User` (`user`, `password`) VALUES
-	('0324027', '123');
+INSERT INTO `User` (`user`, `password`, `balance`, `book_value`) VALUES
+	('0324027', '123', 1000000, 1000000);
 /*!40000 ALTER TABLE `User` ENABLE KEYS */;
+
+-- 傾印  檢視 stock.Valid_Order 結構
+-- 建立臨時表格，以解決檢視依存性錯誤
+CREATE TABLE `Valid_Order` (
+	`NID` FLOAT(12) NOT NULL,
+	`OrderPrice` DOUBLE(22,0) NOT NULL,
+	`Symbol` VARCHAR(50) NOT NULL COLLATE 'latin1_swedish_ci',
+	`UserID` FLOAT(12) NOT NULL,
+	`Side` INT(1) NOT NULL,
+	`Order_situation` INT(1) NOT NULL COMMENT '1 = 委託中，2 = 成交, 3 = 刪單',
+	`Client_SerialNum` BIGINT(20) NOT NULL
+) ENGINE=MyISAM;
+
+-- 傾印  檢視 stock.Valid_Order 結構
+-- 移除臨時表格，並建立最終檢視結構
+DROP TABLE IF EXISTS `Valid_Order`;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `Valid_Order` AS select `Order`.`NID` AS `NID`,`Order`.`OrderPrice` AS `OrderPrice`,`Order`.`Symbol` AS `Symbol`,`Order`.`UserID` AS `UserID`,`Order`.`Side` AS `Side`,`Order`.`Order_situation` AS `Order_situation`,`Order`.`Client_SerialNum` AS `Client_SerialNum` from `Order` where (`Order`.`Order_situation` = '1');
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;

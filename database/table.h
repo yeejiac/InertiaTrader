@@ -8,6 +8,7 @@ struct OrderData
     std::string symbol; //商品代號
     std::string userID; //委託人帳號
     int side; //買賣別
+    long client_serialnum;
 };
 
 struct ReportData
@@ -26,4 +27,6 @@ struct UserData
 {
     std::string userID;
     std::string password;
+    double balance; //帳戶現金總額
+    double book_value; //未實現損益
 };
