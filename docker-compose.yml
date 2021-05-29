@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 version: '2'
 services:
   database:
@@ -12,7 +11,6 @@ services:
   trader:
     image: inertiatrader
     container_name: inertiatrader
-=======
 version: '3.7'
 services:
   database_master:
@@ -71,13 +69,11 @@ services:
     restart: always
     environment:
       - TZ=Asia/Taipei
->>>>>>> devel
     ports:
       - "1203:1203"
     command: >
       /bin/bash -c "
       sleep 15;
-<<<<<<< HEAD
       ./trader.out test;
       docker stop mydb_container;"
     depends_on:
@@ -85,7 +81,6 @@ services:
     networks:
       vpcbr:
         ipv4_address: 172.28.0.2
-=======
       ./trader.out devel;"
     depends_on:
       - database_master
@@ -138,7 +133,6 @@ services:
       
 volumes:
   portainer_data:
->>>>>>> devel
 
 networks:
   vpcbr:
