@@ -44,6 +44,7 @@ public:
     OrderSituation getSituation();
     int connId;
     int side;
+    bool operator<(const Order &p);
 private:
     int stockNum_;
     long nid_;
@@ -129,8 +130,8 @@ private:
     std::vector<Order*> buyside_;
     std::vector<Order*> sellside_;
     std::vector<std::shared_ptr<Order*>> reportList_;
-    // std::multiset<Order*> rawBuyside_;
-    // std::multiset<Order*> rawSellside_;
+    std::multiset<Order*> rawBuyside_;
+    std::multiset<Order*> rawSellside_;
     bool traderstatus_;
     std::condition_variable cv_;
     std::mutex cv_m;

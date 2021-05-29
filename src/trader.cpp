@@ -63,6 +63,11 @@ double Order::getPrice()
     return price_;
 }
 
+bool Order::operator<(const Order &p)
+{
+    return p.orderPrice>orderPrice || p.orderPrice == orderPrice;
+}
+
 
 
 void Report::setReportType(ReportType rpt)
@@ -170,12 +175,12 @@ void Trader::orderDataInsert(Order *order)
     //New Order object and insert data
     if(order->getside() == Side::BUY)
     {
-        buyside_.push_back(order);
+        rawBuyside_.insert(order);
         logwrite->write(LogLevel::DEBUG, "(Trader) Get Buyside Order");
     }
     else
     {
-        sellside_.push_back(order);
+        rawSellside_.insert(order);
         logwrite->write(LogLevel::DEBUG, "(Trader) Get SellSide Order");
     }
     cv_m.unlock();
@@ -190,27 +195,31 @@ void Trader::matchup()
     {
         std::lock_guard<std::mutex> lck(cv_m);
         logwrite->write(LogLevel::DEBUG, "(Trader) Do Match up process");
-        int num = sellside_.size();
-        int num2 = buyside_.size();
+        int num = rawSellside_.size();
+        int num2 = rawBuyside_.size();
         int i = 0;
         while(i <num&&num2>0&&num>0) 
         {
             logwrite->write(LogLevel::DEBUG, "(Trader) Execute Match up");
-            for(int j = 0; j<num2;j++)
+            std::multiset<Order*>::const_iterator  it;
+            for(it = rawBuyside_.begin(); it!=rawBuyside_.end();++it)
             {
-                if(buyside_[j]->orderPrice >= sellside_[i]->orderPrice)
+                Order *odb = *it;
+                auto it2 = std::prev(rawSellside_.end());
+                Order *ods = *it2;
+                if(od->orderPrice >= ods->orderPrice)
                 {
-                    buyside_[j]->execPrice = sellside_[i]->orderPrice;
-                    sellside_[i]->execPrice = sellside_[i]->orderPrice;
-                    sr->quoteUpdate("KKC", sellside_[i]->execPrice);
-                    std::shared_ptr<Order*> a = std::make_shared<Order*> (std::move(buyside_[j]));
+                    odb->execPrice = ods->orderPrice;
+                    ods->execPrice = ods->orderPrice;
+                    sr->quoteUpdate("KKC", ods->orderPrice);
+                    std::shared_ptr<Order*> a = std::make_shared<Order*> (std::move(odb));
                     reportList_.push_back(a);
-                    std::shared_ptr<Order*> b = std::make_shared<Order*> (std::move(sellside_[i]));
+                    std::shared_ptr<Order*> b = std::make_shared<Order*> (std::move(ods));
                     reportList_.push_back(b);
-                    sellside_.erase(sellside_.begin() + i);
-                    buyside_.erase(buyside_.begin() + j);
+                    rawSellside_.erase(std::prev(rawSellside_.end()));
+                    it = rawBuyside_.erase(it);
                     logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
-                    j = num2;
+                    break;
                 }
             }
             break;
@@ -220,6 +229,12 @@ void Trader::matchup()
             std::this_thread::sleep_for(std::chrono::seconds(5));
         else
             std::this_thread::sleep_for(std::chrono::seconds(1));
+        // std::multiset<Order*>::const_iterator  it;
+        // for(it = rawBuyside_.begin(); it!=rawBuyside_.end();++it)
+        // {
+        //     Order *od = *it;
+        //     std::cout<<od->orderPrice<<std::endl;
+        // }
     }
 }
 

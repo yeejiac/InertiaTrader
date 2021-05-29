@@ -177,23 +177,30 @@ std::vector<OrderData*> TradingDataHandler::getExistOrder()
 
 bool TradingDataHandler::insertOrder(OrderData *od)
 {
-    std::string value = od->nid + ","  + std::to_string(od->orderPrice) + "," +"'"+ od->symbol +"'" +"," + od->userID + "," 
-                        + std::to_string(od->side) + ", '1' ," + std::to_string(od->client_serialnum);
-    std::string query = "INSERT INTO `stock`.`Order` (`NID`, `OrderPrice`, `Symbol`, `UserID`, `Side`, `Order_situation`, `Client_SerialNum`) VALUES (" + value + ");";
-    std::cout<<query<<std::endl;
-    if (mysql_query(conn, query.c_str()) != 0)                   
-    {    
-        // fprintf(stderr, "%s\n", mysql_error(conn));     
-        std::string msg(mysql_error(conn));                                                                                                                                                   
-        logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure (OrderReport)" + msg);       
-        return false;                                                                  
-    }
-    else
+    try
     {
-        logwrite->write(LogLevel::DEBUG, "(MariaDB) Insert Order Success");
-        return true;
+        std::string value = od->nid + ","  + std::to_string(od->orderPrice) + "," +"'"+ od->symbol +"'" +"," + od->userID + "," 
+                        + std::to_string(od->side) + ", '1' ," + std::to_string(od->client_serialnum);
+        std::string query = "INSERT INTO `stock`.`Order` (`NID`, `OrderPrice`, `Symbol`, `UserID`, `Side`, `Order_situation`, `Client_SerialNum`) VALUES (" + value + ");";
+        std::cout<<query<<std::endl;
+        if (mysql_query(conn, query.c_str()) != 0)                   
+        {    
+            // fprintf(stderr, "%s\n", mysql_error(conn));     
+            std::string msg(mysql_error(conn));                                                                                                                                                   
+            logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure (OrderReport)" + msg);       
+            return false;                                                                  
+        }
+        else
+        {
+            logwrite->write(LogLevel::DEBUG, "(MariaDB) Insert Order Success");
+            return true;
+        }
     }
-        
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        logwrite->write(LogLevel::ERROR, "(MariaDB) Insert Order failed");
+    }    
 }
 
 bool TradingDataHandler::addTrader(UserData *ud)
