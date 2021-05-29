@@ -68,22 +68,22 @@ services:
       vpcbr:
         ipv4_address: 172.28.0.2
   
-  # market_maker:
-  #   build:
-  #     context: .
-  #     dockerfile: dockerfile.market_maker
-  #   restart: always
-  #   environment:
-  #     - TZ=Asia/Taipei
-  #   command: >
-  #     /bin/bash -c "
-  #     sleep 20;
-  #     ./client.out;"
-  #   depends_on:
-  #     - inertiatrader
-  #   networks:
-  #     vpcbr:
-  #       ipv4_address: 172.28.0.6
+  market_maker:
+    build:
+      context: .
+      dockerfile: dockerfile.market_maker
+    restart: always
+    environment:
+      - TZ=Asia/Taipei
+    command: >
+      /bin/bash -c "
+      sleep 20;
+      ./client.out;"
+    depends_on:
+      - inertiatrader
+    networks:
+      vpcbr:
+        ipv4_address: 172.28.0.6
 
   webservice:
     image: yeejiac/webservice:latest

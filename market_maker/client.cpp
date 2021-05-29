@@ -5,14 +5,14 @@ Client::Client(std::string initFilePath, std::string initchosen, std::string log
     logwrite = new Logwriter("CL", logPath);
 	ip = new InitParser(initFilePath, initchosen);
     allowConn();
-    std::thread sendtd(&Client::sendTypeMsg,this);
+    // std::thread sendtd(&Client::sendTypeMsg,this);
     std::thread recvtd(&Client::recvMsg,this);
     std::thread heatbeat(&Client::heartbeatSending, this);
-    // std::thread marketmaker(&Client::startTradingProcess, this);
-    sendtd.join();
+    std::thread marketmaker(&Client::startTradingProcess, this);
+    // sendtd.join();
     heatbeat.join();
     recvtd.detach();
-    // marketmaker.detach();
+    marketmaker.detach();
     
 };
 

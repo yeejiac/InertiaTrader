@@ -258,7 +258,7 @@ void Trader::getOrder()
             od->side = std::stoi(res[3]);
             od->symbol = res[6];
             od->userID = "0324027";
-            std::cout<<res[7]<<std::endl;
+            // std::cout<<res[7]<<std::endl;
             od->connId = std::stoi(res[7]);
             od->setSituation(OrderSituation::NORMAL);
             rc->verify(od);
@@ -279,7 +279,7 @@ void Trader::getOrder()
                     odt->userID = od->userID;
                     odt->side = static_cast<int>(od->getside());
                     odt->client_serialnum = od->client_serialNum;
-                    std::cout<<res[7]<<std::endl;
+                    // std::cout<<res[7]<<std::endl;
                     if(sr->insertOrderToDB(odt))
                         sr->sendToClient(std::stoi(res[7]), res[1] + "|success");
                     else

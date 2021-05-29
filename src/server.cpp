@@ -306,7 +306,7 @@ void Server::sendToClient(int connNum, std::string msg)
 Connection* Server::getConnObject(int connNum)
 {
 	Connection *cn = connStorage_[connNum];
-	std::cout<<cn->username<<std::endl;
+	// std::cout<<cn->username<<std::endl;
 	return cn;
 }
 
