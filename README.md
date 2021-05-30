@@ -83,7 +83,7 @@ Shut down whole docker stack
 docker-compose down
 ```
 
-## RESTFUL API
+## WEB API
 
 `GET Login`
 
