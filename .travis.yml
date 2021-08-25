@@ -20,4 +20,7 @@ script:
   - docker-compose up -d
   - docker-compose logs
   - docker-compose down
+
+notifications:
+  slack: codefunhq:GRtZEAQ0uloQ9l7Cd33wniDE
   
