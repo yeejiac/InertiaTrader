@@ -209,6 +209,7 @@ void Trader::matchup()
                 Order *ods = *it2;
                 if(od->orderPrice >= ods->orderPrice)
                 {
+                    cv_m.lock();
                     odb->execPrice = ods->orderPrice;
                     ods->execPrice = ods->orderPrice;
                     sr->quoteUpdate("KKC", ods->orderPrice);
@@ -219,6 +220,7 @@ void Trader::matchup()
                     rawSellside_.erase(std::prev(rawSellside_.end()));
                     it = rawBuyside_.erase(it);
                     logwrite->write(LogLevel::DEBUG, "(Trader) Match up success");
+                    cv_m.unlock();
                     break;
                 }
             }
