@@ -278,6 +278,26 @@ bool TradingDataHandler::updateOrderPrice(std::string nid, std::string price)
     }
 }
 
+void TradingDataHandler::sqlCommandExec()
+{
+    while(true)
+    {
+        std::unique_lock<std::mutex> lk1(mutex_);
+        cv_.wait(lk1, [this]{return sql_dq->checkSpace();});
+        std::string query = sql_dq->popDTA();
+        if (mysql_query(conn, query.c_str()) != 0)                   
+        {    
+            // fprintf(stderr, "%s\n", mysql_error(conn));     
+            std::string msg(mysql_error(conn));                                                                                                                                                   
+            logwrite->write(LogLevel::ERROR, "(MariaDB) [EXCEPTION] Query Failure " + msg);                                                                        
+        }
+        else
+        {
+            logwrite->write(LogLevel::DEBUG, "(MariaDB) Execute Query success");
+        }
+    }
+}
+
 // int main()
 // {
 //     TradingDataHandler *db = new TradingDataHandler("database");

@@ -32,7 +32,7 @@ public:
     DataQueue *sql_dq = new DataQueue(100);
 private:
     std::mutex mutex_;
-	std::condition_variable st_;
+	std::condition_variable cv_;
 };
 
 #endif
