@@ -227,10 +227,10 @@ void Trader::matchup()
             break;
         }
         logwrite->write(LogLevel::DEBUG, "(Trader) Match up process done");
-        if(&num2>0||num>0)
-            std::this_thread::sleep_for(std::chrono::seconds(5));
-        else
+        if(num2>0||num>0)
             std::this_thread::sleep_for(std::chrono::seconds(1));
+        else
+            std::this_thread::sleep_for(std::chrono::seconds(5));
         // std::multiset<Order*>::const_iterator  it;
         // for(it = rawBuyside_.begin(); it!=rawBuyside_.end();++it)
         // {
