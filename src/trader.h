@@ -101,7 +101,6 @@ public:
     void loadExistOrder(); //Disconnect mechanism
     void setTraderStatus(bool status);
     bool getTraderStatus();
-    void rawStrHandle(std::string rawStr);
     void orderDataInsert(Order *order);
     void matchup();
     void loadInitialise();

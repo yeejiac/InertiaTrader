@@ -36,6 +36,8 @@ marketmaker: $(CXXFILE)
 	g++ $(DEBUG) ./lib/libcommon.so ./funclib/dataQueue.cpp ./market_maker/$(CLIENT) \
 	$(CXX) $(CLIENT_TARGET)
 
+unittest: 
+
 initParser:
 	g++ -std=c++11 -fPIC -c $(FILEPATH)initParser.cpp -o $(BIN)initParser.o
 
