@@ -13,9 +13,6 @@ void UnitTest::testTrader()
     testTrader->loadExistOrder(); //Load exist order (Only run in restart)
 
     testTrader->orderDataInsert(testorder);
-
-
-
 }
 
 int main()

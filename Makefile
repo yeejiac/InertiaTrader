@@ -17,6 +17,7 @@ SRC=./src/
 LIB=-lcommonLib -lstdc++ -lpthread -Wall
 
 CXXFILE=main.cpp
+TESTCXXFILE=
 TARGET=-o test.exe
 TRADER_SERVER=-o trader.out
 SERVER_TARGET=-o server.out
