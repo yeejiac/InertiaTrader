@@ -15,8 +15,8 @@
 
 #include "enumStorage.h"
 #include "server.h"
-#include "../funclib/logwriter.h"
-#include "../database/tradingDataHandler.h"
+#include "../../funclib/logwriter.h"
+#include "../Database/tradingDataHandler.h"
 
 #define DELIMITER '|'
 

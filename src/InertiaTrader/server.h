@@ -16,11 +16,11 @@
 #include <thread>
 #include <map>
 #include <memory>
-#include "../funclib/dataQueue.h"
-#include "../funclib/initParser.h"
-#include "../funclib/logwriter.h"
-#include "../funclib/simplefunc.h"
-#include "../database/tradingDataHandler.h"
+#include "../../funclib/dataQueue.h"
+#include "../../funclib/initParser.h"
+#include "../../funclib/logwriter.h"
+#include "../../funclib/simplefunc.h"
+#include "../Database/tradingDataHandler.h"
 #include "tableObject.h"
 #include "connection.h"
 

@@ -5,7 +5,7 @@ SERVER=server.cpp
 TRADER=trader.cpp
 CLIENT=client.cpp
 FILEPATH=./funclib/
-DATABASE=./database/
+DATABASE=./src/Database/
 LIBPATH=./lib/
 CXX=-std=c++11 -pthread
 THREAD=-lpthread
@@ -13,10 +13,10 @@ SSLFLAG=-lcrypto
 DBFLAG=-L/usr/lib64/mysql -lmysqlclient
 DEBUG= -g -w
 BIN=./lib/
-SRC=./src/
+INERTIA=./src/InertiaTrader/
 LIB=-lcommonLib -lstdc++ -lpthread -Wall
 
-CXXFILE=main.cpp
+CXXFILE=./src/main.cpp
 TARGET=-o test.exe
 TRADER_SERVER=-o trader.out
 SERVER_TARGET=-o server.out
@@ -29,7 +29,7 @@ OFILE=$(wildcard $(LIBPATH)*.o)
 
 main: $(CXXFILE)
 	g++ $(DEBUG) $(CXXFILE) $(DBFLAG) $(SSLFLAG) $(LIBPATH)libcommon.so  \
-	$(SRC)connection.cpp $(DATABASE)mariaDBHandler.cpp $(DATABASE)tradingDataHandler.cpp $(SRC)$(SERVER) $(SRC)$(TRADER) \
+	$(INERTIA)connection.cpp $(DATABASE)mariaDBHandler.cpp $(DATABASE)tradingDataHandler.cpp $(INERTIA)$(SERVER) $(INERTIA)$(TRADER) \
 	$(CXX) $(TRADER_SERVER)
 
 marketmaker: $(CXXFILE)

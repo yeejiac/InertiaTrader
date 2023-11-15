@@ -15,8 +15,8 @@
 #include <thread>
 #include <chrono>
 
-#include "../funclib/initParser.h"
-#include "../funclib/logwriter.h"
+#include "../../funclib/initParser.h"
+#include "../../funclib/logwriter.h"
 
 #define buffer 1024
 

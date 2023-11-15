@@ -6,8 +6,8 @@
 #include <memory>
 #include <string.h>
 
-#include "../funclib/initParser.h"
-#include "../funclib/logwriter.h"
+#include "../../funclib/initParser.h"
+#include "../../funclib/logwriter.h"
 #include "table.h"
 
 class MariaDBHandler

@@ -9,7 +9,7 @@
 #include <condition_variable>
 
 #include "mariaDBHandler.h"
-#include "../funclib/dataQueue.h"
+#include "../../funclib/dataQueue.h"
 
 class TradingDataHandler:public MariaDBHandler
 {
